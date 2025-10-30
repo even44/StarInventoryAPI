@@ -54,6 +54,14 @@ app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
     return Results.Ok(item);
 });
 
+app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db) =>
+{
+    db.PersonalItems.Add(item);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/personal/items/{item.Id}", item);
+});
+
 app.MapGet("/personal/items", async (ItemCacheDb db) =>
 {
     List<StarItem> items;
@@ -80,6 +88,8 @@ app.MapGet("/resetdb", async (ItemCacheDb db) =>
 
     return Results.Ok("Database Cleared");
 });
+
+
 
 app.Run();
 // This is a comment
