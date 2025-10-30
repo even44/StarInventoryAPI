@@ -78,10 +78,27 @@ app.MapGet("/personal/items", async (ItemCacheDb db) =>
 // ADD ONE
 app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db) =>
 {
-    db.PersonalItems.Add(item);
-    await db.SaveChangesAsync();
+    // Check if a record with the same name and location already exists
+    var existingItem = await db.PersonalItems.Include(item => item.Location).FirstOrDefaultAsync(i => i.Name == item.Name && i.Location == item.Location);
+    if (existingItem == null)
+    {
+        db.PersonalItems.Add(item);
 
-    return Results.Created($"/personal/items/{item.Id}", item);
+        await db.SaveChangesAsync();
+
+        return Results.Created($"/personal/items/{item.Id}", item);
+    }
+    else
+    {
+        existingItem.Quantity += item.Quantity;
+
+        await db.SaveChangesAsync();
+
+        return Results.Created($"/personal/items/{item.Id}", existingItem);
+    }
+
+
+
 });
 
 // DELETE ONE
