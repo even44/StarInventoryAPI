@@ -7,16 +7,19 @@ var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
-                      policy =>
-                      {
-                          policy.WithOrigins("*");
-                      });
+        policy =>
+        {
+            policy.WithOrigins("*");
+        });
 });
 
 var connectionString = builder.Configuration.GetConnectionString("MariaDbConnection");
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAuthentication().AddJwtBearer();
+builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<ItemCacheDb>(
     opt => opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
@@ -30,6 +33,8 @@ builder.Services.AddDbContext<ItemCacheDb>(
 var app = builder.Build();
 
 app.UseCors(MyAllowSpecificOrigins);
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -54,6 +59,16 @@ app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
     return Results.Ok(item);
 });
 
+
+// GET LIST
+app.MapGet("/personal/items", async (ItemCacheDb db) =>
+{
+    List<StarItem> items;
+    items = await db.PersonalItems.Include(item => item.Location).ToListAsync();
+    return Results.Ok(items);
+});
+
+// ADD ONE
 app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db) =>
 {
     db.PersonalItems.Add(item);
@@ -62,11 +77,19 @@ app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db) =>
     return Results.Created($"/personal/items/{item.Id}", item);
 });
 
-app.MapGet("/personal/items", async (ItemCacheDb db) =>
+// DELETE ONE
+app.MapDelete("/personal/items/{id}", async (int id, ItemCacheDb db) =>
 {
-    List<StarItem> items;
-    items = await db.PersonalItems.Include(item => item.Location).ToListAsync();
-    return Results.Ok(items);
+    var item = await db.PersonalItems.FindAsync(id);
+    if (item == null)
+    {
+        return Results.NotFound();
+    }
+
+    db.PersonalItems.Remove(item);
+    await db.SaveChangesAsync();
+
+    return Results.Ok();
 });
 
 app.MapGet("/locations", async (ItemCacheDb db) =>
