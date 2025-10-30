@@ -24,6 +24,8 @@ public class StarItem
     {
         Random random = new Random();
 
+
+
         return new StarItem();
 
     }

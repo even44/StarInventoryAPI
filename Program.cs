@@ -65,5 +65,12 @@ app.MapGet("/personal/items", async (ItemCacheDb db) =>
     return Results.Ok(items);
 });
 
+app.MapGet("/locations", async (ItemCacheDb db) =>
+{
+    List<StarLocation> locations;
+    locations = await db.StarLocations.ToListAsync();
+    return Results.Ok(locations);
+});
+
 app.Run();
 // This is a comment

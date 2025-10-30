@@ -6,6 +6,7 @@ public class ItemCacheDb : DbContext
 
     public DbSet<UexItem> CacheItems => Set<UexItem>();
     public DbSet<StarItem> PersonalItems => Set<StarItem>();
+    public DbSet<StarLocation> StarLocations => Set<StarLocation>();
 
 }
 
