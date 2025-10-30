@@ -7,7 +7,7 @@ public class StarLocation
 
     public StarLocation()
     {
-        Name = "Tes Lokasjon";
+        Name = "Test Lokasjon";
         UexIdentifier = 2;
     }
 }

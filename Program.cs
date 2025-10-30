@@ -52,7 +52,7 @@ app.MapGet("/stefan", () => "Stefan er en tulling! Og veldig drit i star citizen
 
 app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
 {
-    StarItem item = new StarItem();
+    StarItem item = StarItem.RandomItem();
     await db.PersonalItems.AddAsync(item);
     await db.SaveChangesAsync();
     return Results.Ok(item);
@@ -70,6 +70,19 @@ app.MapGet("/locations", async (ItemCacheDb db) =>
     List<StarLocation> locations;
     locations = await db.StarLocations.ToListAsync();
     return Results.Ok(locations);
+});
+
+app.MapGet("/resetdb", async (ItemCacheDb db) =>
+{
+    var itemlist = await db.PersonalItems.ToListAsync();
+    var locationlist = await db.StarLocations.ToListAsync();
+
+    db.PersonalItems.RemoveRange(itemlist);
+    db.StarLocations.RemoveRange(locationlist);
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok("Database Cleared");
 });
 
 app.Run();
