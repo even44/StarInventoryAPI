@@ -61,9 +61,24 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
 {
     StarItem item = StarItem.RandomItem();
-    await db.PersonalItems.AddAsync(item);
-    await db.SaveChangesAsync();
-    return Results.Ok(item);
+
+    var existingItem = await db.PersonalItems.Include(item => item.Location).FirstOrDefaultAsync(i => i.Name == item.Name && i.Location.Name == item.Location.Name);
+    if (existingItem == null)
+    {
+        await db.PersonalItems.AddAsync(item);
+        await db.SaveChangesAsync();
+        return Results.Created($"/personal/items/{item.Id}", item);
+    }
+    else
+    {
+        existingItem.Quantity += item.Quantity;
+
+        await db.SaveChangesAsync();
+
+        return Results.Created($"/personal/items/{existingItem.Id}", existingItem);
+    }
+
+
 });
 
 
