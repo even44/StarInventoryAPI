@@ -13,7 +13,7 @@ public class ItemCacheDb : DbContext
 
     public void UpdateCategories(HttpClient client)
     {
-        //var httpClient = IHttpClientFactory.CreateClient("UexApi");
+
     }
 
 }
