@@ -99,6 +99,24 @@ app.MapDelete("/personal/items/{id}", async (int id, ItemCacheDb db) =>
     return Results.Ok();
 });
 
+app.MapPut("/personal/items/{id}", async (int id, StarItem item, ItemCacheDb db) =>
+{
+    StarItem? existingItem = await db.PersonalItems.FindAsync(item.Id);
+    if (existingItem == null)
+    {
+        return Results.NotFound();
+    }
+
+
+    item.Id = id;
+
+    existingItem.Name = item.Name;
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok();
+});
+
 app.MapGet("/locations", async (ItemCacheDb db) =>
 {
     List<StarLocation> locations;
