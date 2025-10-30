@@ -144,6 +144,9 @@ app.MapPut("/personal/items/{id}", async (int id, StarItem item, ItemCacheDb db)
     item.Id = id;
 
     existingItem.Name = item.Name;
+    existingItem.IsSharedWithOrganization = item.IsSharedWithOrganization;
+    existingItem.Quantity = item.Quantity;
+
 
     await db.SaveChangesAsync();
 
