@@ -10,6 +10,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy.WithOrigins("*");
+            policy.AllowAnyMethod();
         });
 });
 
@@ -18,6 +19,12 @@ var connectionString = builder.Configuration.GetConnectionString("MariaDbConnect
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+builder.Services.AddHttpClient("UexApi", client =>
+{
+    client.BaseAddress = new Uri("https://api.uexcorp.uk/2.0/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 builder.Services.AddAuthentication().AddJwtBearer();
 builder.Services.AddAuthorization();
 
