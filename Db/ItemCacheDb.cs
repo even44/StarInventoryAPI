@@ -5,6 +5,7 @@ public class ItemCacheDb : DbContext
     public ItemCacheDb(DbContextOptions<ItemCacheDb> options) : base(options) { }
 
     public DbSet<UexItem> CacheItems => Set<UexItem>();
+    public DbSet<StarItem> PersonalItems => Set<StarItem>();
 
 }
 

@@ -39,5 +39,20 @@ app.MapGet("/refreshcache", async (ItemCacheDb db) =>
 
 app.MapGet("/stefan", () => "Stefan er en tulling! Og veldig drit i star citizen!");
 
+app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
+{
+    StarItem item = new StarItem();
+    await db.PersonalItems.AddAsync(item);
+    await db.SaveChangesAsync();
+    return Results.Ok(item);
+});
+
+app.MapGet("/personal/items", async (ItemCacheDb db) =>
+{
+    List<StarItem> items;
+    items = await db.PersonalItems.ToListAsync();
+    return Results.Ok(items);
+});
+
 app.Run();
 // This is a comment
