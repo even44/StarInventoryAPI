@@ -33,7 +33,7 @@ public class StarItem
         string[] nameList = ["Picoball", "Fishtank", "Stefan", "P8-AR", "P4-AR"];
         string randName = random.GetItems<string>(nameList, 1)[0];
         StarLocation randomLocation = new StarLocation();
-        int randQuantity = (int)random.NextSingle() * 100;
+        int randQuantity = (int)(random.NextSingle() * 100.0);
         bool randIsShared = random.GetItems<bool>([true, false], 1)[0];
 
 

@@ -42,13 +42,9 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.MapGet("/refreshcache", async (ItemCacheDb db) =>
-{
-    var items = await db.CacheItems.ToListAsync();
-    return Results.Ok(items);
-});
 
-app.MapGet("/stefan", () => "Stefan er en tulling! Og veldig drit i star citizen!");
+
+
 
 app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
 {
@@ -61,7 +57,7 @@ app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
 app.MapGet("/personal/items", async (ItemCacheDb db) =>
 {
     List<StarItem> items;
-    items = await db.PersonalItems.ToListAsync();
+    items = await db.PersonalItems.Include(item => item.Location).ToListAsync();
     return Results.Ok(items);
 });
 
