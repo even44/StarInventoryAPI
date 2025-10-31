@@ -63,22 +63,9 @@ app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
 {
     StarItem item = StarItem.RandomItem();
 
-    var existingItem = await db.PersonalItems.Include(item => item.Location).FirstOrDefaultAsync(i => i.Name == item.Name && i.Location.Name == item.Location.Name);
-    if (existingItem == null)
-    {
-        await db.PersonalItems.AddAsync(item);
-        await db.SaveChangesAsync();
-        return Results.Created($"/personal/items/{item.Id}", item);
-    }
-    else
-    {
-        existingItem.Quantity += item.Quantity;
+    StarItem resultItem = await StarDataStore.AddStarItem(db, item);
 
-        await db.SaveChangesAsync();
-
-        return Results.Created($"/personal/items/{existingItem.Id}", existingItem);
-    }
-
+    return Results.Created($"/personal/items/{resultItem.Id}", resultItem);
 
 });
 
@@ -87,34 +74,19 @@ app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
 app.MapGet("/personal/items", async (ItemCacheDb db) =>
 {
     List<StarItem> items;
-    items = await db.PersonalItems.Include(item => item.Location).ToListAsync();
+    items = await StarDataStore.GetPersonalItems(db);
     return Results.Ok(items);
 });
 
 // ADD ONE
 app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db) =>
 {
-    // Check if a record with the same name and location already exists
-    var existingItem = await db.PersonalItems.Include(item => item.Location).FirstOrDefaultAsync(i => i.Name == item.Name && i.Location == item.Location);
-    if (existingItem == null)
+    StarItem? resultItem = await StarDataStore.AddStarItem(db, item);
+    if (resultItem == null)
     {
-        db.PersonalItems.Add(item);
-
-        await db.SaveChangesAsync();
-
-        return Results.Created($"/personal/items/{item.Id}", item);
+        return Results.BadRequest("Invalid Location");
     }
-    else
-    {
-        existingItem.Quantity += item.Quantity;
-
-        await db.SaveChangesAsync();
-
-        return Results.Created($"/personal/items/{item.Id}", existingItem);
-    }
-
-
-
+    return Results.Created($"/personal/items/{resultItem.Id}", resultItem);
 });
 
 // DELETE ONE
@@ -134,23 +106,9 @@ app.MapDelete("/personal/items/{id}", async (int id, ItemCacheDb db) =>
 
 app.MapPut("/personal/items/{id}", async (int id, StarItem item, ItemCacheDb db) =>
 {
-    StarItem? existingItem = await db.PersonalItems.FindAsync(item.Id);
-    if (existingItem == null)
-    {
-        return Results.NotFound();
-    }
+    StarItem reusltItem = await StarDataStore.UpdateStarItem(db, id, item);
 
-
-    item.Id = id;
-
-    existingItem.Name = item.Name;
-    existingItem.IsSharedWithOrganization = item.IsSharedWithOrganization;
-    existingItem.Quantity = item.Quantity;
-
-
-    await db.SaveChangesAsync();
-
-    return Results.Ok();
+    return Results.Ok(reusltItem);
 });
 
 app.MapGet("/locations", async (ItemCacheDb db) =>
