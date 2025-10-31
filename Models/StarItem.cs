@@ -12,7 +12,6 @@ public class StarItem
 
     public StarItem()
     {
-
     }
 
     public StarItem(int id, string name, int uexIdentifier, StarLocation location, int quantity, bool isSharedWithOrganization)
