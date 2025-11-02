@@ -72,7 +72,12 @@ app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
 {
     StarItem item = StarItem.RandomItem();
 
-    StarItem resultItem = await StarDataStore.AddStarItem(db, item);
+    StarItem? resultItem = await StarDataStore.AddStarItem(db, item);
+
+    if (resultItem == null)
+    {
+        return Results.InternalServerError("Failed to add random item");
+    }
 
     return Results.Created($"/personal/items/{resultItem.Id}", resultItem);
 
