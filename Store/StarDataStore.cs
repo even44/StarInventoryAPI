@@ -11,6 +11,7 @@ public static class StarDataStore
         var location = await db.StarLocations.FirstOrDefaultAsync(loc => loc.Id == item.LocationId);
         if (location == null)
         {
+            Console.WriteLine($"Invalid Location when adding item");
             return null;
         }
 
