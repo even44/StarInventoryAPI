@@ -56,7 +56,16 @@ if (app.Environment.IsDevelopment())
 
 
 
-
+app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientFactory) =>
+{
+    var client = httpClientFactory.CreateClient("UexApi");
+    bool result = await db.UpdateCategories(db, client);
+    if (!result)
+    {
+        return Results.StatusCode(500);
+    }
+    return Results.Ok("Cache Update Done");
+});
 
 
 app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>

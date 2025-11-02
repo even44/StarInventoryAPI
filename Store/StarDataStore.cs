@@ -8,13 +8,13 @@ public static class StarDataStore
     public static async Task<StarItem?> AddStarItem(ItemCacheDb db, StarItem item)
     {
 
-        var location = await db.StarLocations.FirstOrDefaultAsync(loc => loc.Name == item.Location.Name);
+        var location = await db.StarLocations.FirstOrDefaultAsync(loc => loc.Id == item.LocationId);
         if (location == null)
         {
             return null;
         }
 
-        var existingItem = await db.PersonalItems.Include(item => item.Location).FirstOrDefaultAsync(i => i.Name == item.Name && i.Location.Name == item.Location.Name);
+        var existingItem = await db.PersonalItems.FirstOrDefaultAsync(i => i.Name == item.Name && i.LocationId == item.LocationId);
         if (existingItem == null)
         {
             db.PersonalItems.Add(item);
@@ -51,7 +51,12 @@ public static class StarDataStore
 
     public static async Task<List<StarItem>> GetPersonalItems(ItemCacheDb db)
     {
-        List<StarItem> items = await db.PersonalItems.Include(item => item.Location).ToListAsync();
+        List<StarItem> items = await db.PersonalItems.ToListAsync();
         return items;
     }
+
+
+    // CACHE METHODS
+
+
 }

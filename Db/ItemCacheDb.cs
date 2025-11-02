@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 public class ItemCacheDb : DbContext
@@ -5,15 +6,53 @@ public class ItemCacheDb : DbContext
     public ItemCacheDb(DbContextOptions<ItemCacheDb> options) : base(options) { }
 
     public DbSet<UexItem> CacheItems => Set<UexItem>();
-    public DbSet<UexCategory> CacheCategories => Set<UexCategory>();
     public DbSet<StarItem> PersonalItems => Set<StarItem>();
     public DbSet<StarLocation> StarLocations => Set<StarLocation>();
+    public DbSet<UexCategory> UexCategories => Set<UexCategory>();
+    public DbSet<UexItem> UexItems => Set<UexItem>();
 
 
 
-    public void UpdateCategories(HttpClient client)
+    public async Task<bool> UpdateCategories(ItemCacheDb db, HttpClient client)
     {
-
+        var responseTask = await client.GetAsync("https://api.uexcorp.uk/2.0/categories");
+            var response = responseTask;
+            Console.WriteLine($"UEX Categories Response: {response.StatusCode}");
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Parsing UEX Categories Response");
+                var categoriesResponse = await response.Content.ReadFromJsonAsync<UexCategoryResponse>();
+                if (categoriesResponse != null)
+                {
+                    Console.WriteLine($"UEX Categories Parsed Response: {categoriesResponse.HttpCode} {categoriesResponse.Status} [{categoriesResponse.Message}]");
+                    foreach (UexCategory category in categoriesResponse.Data)
+                    {
+                        Console.WriteLine($"Processing Category: {category.Id} {category.Name} {category.Section} {category.Type} {category.IsGameRelated} {category.IsMining} {category.DateAdded} {category.DateModified}");
+                        var existingCategory = await db.UexCategories.FindAsync(category.Id);
+                        if (existingCategory == null)
+                        {
+                            db.UexCategories.Add(category);
+                            Console.WriteLine($"Added New Category: {category.Name}");
+                        }
+                        else
+                        {
+                            existingCategory.Type = category.Type;
+                            existingCategory.Section = category.Section;
+                            existingCategory.Name = category.Name;
+                            existingCategory.IsGameRelated = category.IsGameRelated;
+                            existingCategory.IsMining = category.IsMining;
+                            existingCategory.DateAdded = category.DateAdded;
+                            existingCategory.DateModified = category.DateModified;
+                        }
+                    }
+                await SaveChangesAsync();
+                Console.WriteLine("UEX Categories Updated Successfully");
+                return true;
+                }
+            Console.WriteLine("UEX Categories Parsing Failed");
+            }
+        Console.WriteLine("UEX Categories Update Failed");
+        return false;
     }
 
 }
@@ -88,12 +127,33 @@ date_modified int // timestamp
 
 public class UexCategory
 {
+    [JsonPropertyName("id")]
     public int Id { get; set; }
+    [JsonPropertyName("type")]
     public string Type { get; set; }
+    [JsonPropertyName("section")]
     public string Section { get; set; }
+    [JsonPropertyName("name")]
     public string Name { get; set; }
-    public bool IsGameRelated { get; set; }
-    public bool IsMining { get; set; }
-    public DateTime DateAdded { get; set; }
-    public DateTime DateModified { get; set; }
+    [JsonPropertyName("is_game_related")]
+    public int IsGameRelated { get; set; }
+    [JsonPropertyName("is_mining")]
+    public int IsMining { get; set; }
+    [JsonPropertyName("date_added")]
+    public int DateAdded { get; set; }
+    [JsonPropertyName("date_modified")]
+    public int DateModified { get; set; }
+}
+
+
+public class UexCategoryResponse
+{
+    [JsonPropertyName("status")]
+    public string Status { get; set; }
+    [JsonPropertyName("http_code")]
+    public int HttpCode { get; set; }
+    [JsonPropertyName("data")]
+    public List<UexCategory> Data { get; set; }
+    [JsonPropertyName("message")]
+    public string Message { get; set; }
 }
