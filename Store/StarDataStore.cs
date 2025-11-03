@@ -56,6 +56,18 @@ public static class StarDataStore
         return items;
     }
 
+    public static async Task<List<UexPoi>> GetUexPois(ItemCacheDb db)
+    {
+        List<UexPoi> pois = await db.UexPois.ToListAsync();
+        return pois;
+    }
+
+    public static async Task<List<UexSpaceStation>> GetStarSpaceStations(ItemCacheDb db)
+    {
+        List<UexSpaceStation> stations = await db.UexSpaceStations.ToListAsync();
+        return stations;
+    }
+
 
     // CACHE METHODS
 

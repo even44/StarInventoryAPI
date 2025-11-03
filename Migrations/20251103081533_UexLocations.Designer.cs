@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StarInventoryAPI.Migrations
 {
     [DbContext(typeof(ItemCacheDb))]
-    partial class ItemCacheDbModelSnapshot : ModelSnapshot
+    [Migration("20251103081533_UexLocations")]
+    partial class UexLocations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -193,7 +196,7 @@ namespace StarInventoryAPI.Migrations
                     b.ToTable("UexItem");
                 });
 
-            modelBuilder.Entity("UexPoi", b =>
+            modelBuilder.Entity("UexLocation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -386,191 +389,7 @@ namespace StarInventoryAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UexPois");
-                });
-
-            modelBuilder.Entity("UexSpaceStation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CityId")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_city");
-
-                    b.Property<string>("CityName")
-                        .HasColumnType("longtext")
-                        .HasAnnotation("Relational:JsonPropertyName", "city_name");
-
-                    b.Property<int>("DateAdded")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "date_added");
-
-                    b.Property<int>("DateModified")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "date_modified");
-
-                    b.Property<int>("FactionId")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_faction");
-
-                    b.Property<string>("FactionName")
-                        .HasColumnType("longtext")
-                        .HasAnnotation("Relational:JsonPropertyName", "faction_name");
-
-                    b.Property<int>("HasCargoCenter")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_cargo_center");
-
-                    b.Property<int>("HasClinic")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_clinic");
-
-                    b.Property<int>("HasDockingPort")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_docking_port");
-
-                    b.Property<int>("HasFood")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_food");
-
-                    b.Property<int>("HasFreightElevator")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_freight_elevator");
-
-                    b.Property<int>("HasGravity")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_gravity");
-
-                    b.Property<int>("HasHabitation")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_habitation");
-
-                    b.Property<int>("HasLoadingDock")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_loading_dock");
-
-                    b.Property<int>("HasQuantumMarker")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_quantum_marker");
-
-                    b.Property<int>("HasRefinery")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_refinery");
-
-                    b.Property<int>("HasRefuel")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_refuel");
-
-                    b.Property<int>("HasRepair")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_repair");
-
-                    b.Property<int>("HasShops")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_shops");
-
-                    b.Property<int>("HasTradeTerminal")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "has_trade_terminal");
-
-                    b.Property<int>("IsArmistice")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "is_armistice");
-
-                    b.Property<int>("IsAvailable")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "is_available");
-
-                    b.Property<int>("IsAvailableLive")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "is_available_live");
-
-                    b.Property<int>("IsDecommissioned")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "is_decommissioned");
-
-                    b.Property<int>("IsDefault")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "is_default");
-
-                    b.Property<int>("IsJumpPoint")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "is_jump_point");
-
-                    b.Property<int>("IsLagrange")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "is_lagrange");
-
-                    b.Property<int>("IsLandable")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "is_landable");
-
-                    b.Property<int>("IsMonitored")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "is_monitored");
-
-                    b.Property<int>("IsVisible")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "is_visible");
-
-                    b.Property<int>("JurisdictionId")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_jurisdiction");
-
-                    b.Property<string>("JurisdictionName")
-                        .HasColumnType("longtext")
-                        .HasAnnotation("Relational:JsonPropertyName", "jurisdiction_name");
-
-                    b.Property<int>("MoonId")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_moon");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasAnnotation("Relational:JsonPropertyName", "name");
-
-                    b.Property<string>("Nickname")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasAnnotation("Relational:JsonPropertyName", "nickname");
-
-                    b.Property<int>("OrbitId")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_orbit");
-
-                    b.Property<string>("OrbitName")
-                        .HasColumnType("longtext")
-                        .HasAnnotation("Relational:JsonPropertyName", "orbit_name");
-
-                    b.Property<string>("PadTypes")
-                        .HasColumnType("longtext")
-                        .HasAnnotation("Relational:JsonPropertyName", "pad_types");
-
-                    b.Property<int>("PlanetId")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_planet");
-
-                    b.Property<string>("PlanetName")
-                        .HasColumnType("longtext")
-                        .HasAnnotation("Relational:JsonPropertyName", "planet_name");
-
-                    b.Property<int>("StarSystemId")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_star_system");
-
-                    b.Property<string>("StarSystemName")
-                        .HasColumnType("longtext")
-                        .HasAnnotation("Relational:JsonPropertyName", "star_system_name");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UexSpaceStations");
+                    b.ToTable("UexLocations");
                 });
 #pragma warning restore 612, 618
         }

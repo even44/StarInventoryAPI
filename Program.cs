@@ -59,9 +59,22 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientFactory) =>
 {
     var client = httpClientFactory.CreateClient("UexApi");
-    bool result = await db.UpdateCategories(db, client);
-    if (!result)
+    bool catResult = await db.UpdateCategories(db, client);
+    if (!catResult)
     {
+        Console.WriteLine("Failed to update categories");
+        return Results.StatusCode(500);
+    }
+    bool locResult = await db.UpdateLocations(db, client);
+    if (!locResult)
+    {
+        Console.WriteLine("Failed to update pois");
+        return Results.StatusCode(500);
+    }
+    bool spaceStationResult = await db.UpdateSpaceStations(db, client);
+    if (!spaceStationResult)
+    {
+        Console.WriteLine("Failed to update space stations");
         return Results.StatusCode(500);
     }
     return Results.Ok("Cache Update Done");
@@ -130,6 +143,18 @@ app.MapGet("/locations", async (ItemCacheDb db) =>
     List<StarLocation> locations;
     locations = await db.StarLocations.ToListAsync();
     return Results.Ok(locations);
+});
+
+app.MapGet("/pois", async (ItemCacheDb db) =>
+{
+    List<UexPoi> pois = await StarDataStore.GetUexPois(db);
+    return Results.Ok(pois);
+});
+
+app.MapGet("/space_stations", async (ItemCacheDb db) =>
+{
+    List<UexSpaceStation> stations = await db.UexSpaceStations.ToListAsync();
+    return Results.Ok(stations);
 });
 
 app.MapGet("/resetdb", async (ItemCacheDb db) =>
