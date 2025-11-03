@@ -9,9 +9,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
         policy =>
         {
-            policy.AllowAnyMethod();
+            policy.WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
             policy.AllowAnyOrigin();
-            policy.AllowAnyHeader();
+            policy.WithHeaders("Content-Type", "Authorization", "Accept");
         });
 });
 
