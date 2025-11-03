@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 public static class StarDataStore
 {
+
+
     public static async Task<StarItem?> AddStarItem(ItemCacheDb db, StarItem item)
     {
 
@@ -48,6 +50,18 @@ public static class StarDataStore
         await db.SaveChangesAsync();
 
         return existingItem;
+    }
+
+    public static async Task<bool> DeleteStarItem(ItemCacheDb db, int id)
+    {
+        StarItem? existingItem = await db.PersonalItems.FindAsync(id);
+        if (existingItem != null)
+        {
+            db.PersonalItems.Remove(existingItem);
+            await db.SaveChangesAsync();
+            return true;
+        }
+        return false;
     }
 
     public static async Task<List<StarItem>> GetPersonalItems(ItemCacheDb db)

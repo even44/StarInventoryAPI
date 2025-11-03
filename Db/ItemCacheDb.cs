@@ -57,7 +57,7 @@ public class ItemCacheDb : DbContext
         return false;
     }
 
-    public async Task<bool> UpdateLocations(ItemCacheDb db, HttpClient client)
+    public async Task<bool> UpdatePois(ItemCacheDb db, HttpClient client)
     {
         var responseTask = await client.GetAsync("https://api.uexcorp.uk/2.0/poi");
         var response = responseTask;
@@ -212,6 +212,68 @@ public class ItemCacheDb : DbContext
         }
         Console.WriteLine("UEX Space Stations Update Failed");
         return false;
+    }
+
+    public async Task<bool> CompileLocations(ItemCacheDb db)
+    {
+        // Get total count of Pois
+        int totalPois = await db.UexPois.CountAsync();
+        // Get all Pois
+        List<UexPoi> pois = await db.UexPois.ToListAsync();
+
+        // Get total count of Space Stations
+        int totalStations = await db.UexSpaceStations.CountAsync();
+        // Get all Space Stations
+        List<UexSpaceStation> stations = await db.UexSpaceStations.ToListAsync();
+        int i = 0;
+        
+        foreach (UexPoi poi in pois)
+        {
+            StarLocation? existingLocation = await db.StarLocations.FindAsync(i);
+            if (existingLocation == null)
+            {
+                StarLocation newLocation = new StarLocation
+                {
+                    Id = i,
+                    Name = poi.Name,
+                };
+                db.StarLocations.Add(newLocation);
+            }
+            else
+            {
+                existingLocation.Name = poi.Name;
+            }
+            i++;
+        }
+
+        foreach (UexSpaceStation station in stations)
+        {
+            StarLocation? existingLocation = await db.StarLocations.FindAsync(i);
+            if (existingLocation == null)
+            {
+                StarLocation newLocation = new StarLocation
+                {
+                    Id = i,
+                    Name = station.Name,
+                };
+                db.StarLocations.Add(newLocation);
+            }
+            else
+            {
+                existingLocation.Name = station.Name;
+            }
+            i++;
+        }
+        await SaveChangesAsync();
+
+
+        if (db.StarLocations.Count() != (totalPois + totalStations))
+        {
+            Console.WriteLine($"Location count mismatch! {db.StarLocations.Count()} != {totalPois} + {totalStations} i={i}");
+            return false;
+        }
+
+        return true;
     }
 
 }

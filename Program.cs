@@ -55,7 +55,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-
+// Update the Cache from UEX and compile a list of locations
 app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientFactory) =>
 {
     var client = httpClientFactory.CreateClient("UexApi");
@@ -65,7 +65,7 @@ app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientF
         Console.WriteLine("Failed to update categories");
         return Results.StatusCode(500);
     }
-    bool locResult = await db.UpdateLocations(db, client);
+    bool locResult = await db.UpdatePois(db, client);
     if (!locResult)
     {
         Console.WriteLine("Failed to update pois");
@@ -77,13 +77,20 @@ app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientF
         Console.WriteLine("Failed to update space stations");
         return Results.StatusCode(500);
     }
+    bool locationMergeResult = await db.CompileLocations(db);
+    if (!locationMergeResult)
+    {
+        Console.WriteLine("Failed to compile locations");
+        return Results.StatusCode(500);
+    }
     return Results.Ok("Cache Update Done");
 });
 
 
 app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
 {
-    StarItem item = StarItem.RandomItem();
+
+    StarItem item = StarItem.RandomItem(db);
 
     StarItem? resultItem = await StarDataStore.AddStarItem(db, item);
 
@@ -119,14 +126,12 @@ app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db) =>
 // DELETE ONE
 app.MapDelete("/personal/items/{id}", async (int id, ItemCacheDb db) =>
 {
-    var item = await db.PersonalItems.FindAsync(id);
-    if (item == null)
+    bool result = await StarDataStore.DeleteStarItem(db, id);
+    if (!result)
     {
-        return Results.NotFound();
+        return Results.NotFound("Item not found");
     }
-
-    db.PersonalItems.Remove(item);
-    await db.SaveChangesAsync();
+    
 
     return Results.Ok();
 });
@@ -153,7 +158,7 @@ app.MapGet("/pois", async (ItemCacheDb db) =>
 
 app.MapGet("/space_stations", async (ItemCacheDb db) =>
 {
-    List<UexSpaceStation> stations = await db.UexSpaceStations.ToListAsync();
+    List<UexSpaceStation> stations = await StarDataStore.GetStarSpaceStations(db);
     return Results.Ok(stations);
 });
 
