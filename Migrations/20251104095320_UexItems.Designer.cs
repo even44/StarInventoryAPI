@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StarInventoryAPI.Migrations
 {
     [DbContext(typeof(ItemCacheDb))]
-    partial class ItemCacheDbModelSnapshot : ModelSnapshot
+    [Migration("20251104095320_UexItems")]
+    partial class UexItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,6 +134,7 @@ namespace StarInventoryAPI.Migrations
                         .HasAnnotation("Relational:JsonPropertyName", "date_modified");
 
                     b.Property<string>("GameVersion")
+                        .IsRequired()
                         .HasColumnType("longtext")
                         .HasAnnotation("Relational:JsonPropertyName", "game_version");
 
@@ -172,31 +176,31 @@ namespace StarInventoryAPI.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("Relational:JsonPropertyName", "id_category");
 
-                    b.Property<int>("is_commodity")
-                        .HasColumnType("int")
+                    b.Property<bool>("is_commodity")
+                        .HasColumnType("tinyint(1)")
                         .HasAnnotation("Relational:JsonPropertyName", "is_commodity");
 
-                    b.Property<int>("is_exclusive_concierge")
-                        .HasColumnType("int")
+                    b.Property<bool>("is_exclusive_concierge")
+                        .HasColumnType("tinyint(1)")
                         .HasAnnotation("Relational:JsonPropertyName", "is_exclusive_concierge");
 
-                    b.Property<int>("is_exclusive_pledge")
-                        .HasColumnType("int")
+                    b.Property<bool>("is_exclusive_pledge")
+                        .HasColumnType("tinyint(1)")
                         .HasAnnotation("Relational:JsonPropertyName", "is_exclusive_pledge");
 
-                    b.Property<int>("is_exclusive_subscriber")
-                        .HasColumnType("int")
+                    b.Property<bool>("is_exclusive_subscriber")
+                        .HasColumnType("tinyint(1)")
                         .HasAnnotation("Relational:JsonPropertyName", "is_exclusive_subscriber");
 
-                    b.Property<int>("is_harvestable")
-                        .HasColumnType("int")
+                    b.Property<bool>("is_harvestable")
+                        .HasColumnType("tinyint(1)")
                         .HasAnnotation("Relational:JsonPropertyName", "is_harvestable");
 
                     b.Property<int>("parentId")
                         .HasColumnType("int")
                         .HasAnnotation("Relational:JsonPropertyName", "id_parent");
 
-                    b.Property<int?>("vehicleId")
+                    b.Property<int>("vehicleId")
                         .HasColumnType("int")
                         .HasAnnotation("Relational:JsonPropertyName", "id_vehicle");
 

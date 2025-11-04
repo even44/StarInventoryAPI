@@ -59,6 +59,7 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientFactory) =>
 {
     var client = httpClientFactory.CreateClient("UexApi");
+    
     bool catResult = await db.UpdateCategories(db, client);
     if (!catResult)
     {
@@ -81,6 +82,13 @@ app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientF
     if (!locationMergeResult)
     {
         Console.WriteLine("Failed to compile locations");
+        return Results.StatusCode(500);
+    }
+    
+    bool itemResult = await db.UpdateItems(db, client);
+    if (!itemResult)
+    {
+        Console.WriteLine("Failed to update items");
         return Results.StatusCode(500);
     }
     return Results.Ok("Cache Update Done");

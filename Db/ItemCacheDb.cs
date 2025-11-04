@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,9 +13,6 @@ public class ItemCacheDb : DbContext
     public DbSet<UexItem> UexItems => Set<UexItem>();
     public DbSet<UexPoi> UexPois => Set<UexPoi>();
     public DbSet<UexSpaceStation> UexSpaceStations => Set<UexSpaceStation>();
-
-
-
     public async Task<bool> UpdateCategories(ItemCacheDb db, HttpClient client)
     {
         var responseTask = await client.GetAsync("https://api.uexcorp.uk/2.0/categories");
@@ -226,7 +224,7 @@ public class ItemCacheDb : DbContext
         // Get all Space Stations
         List<UexSpaceStation> stations = await db.UexSpaceStations.ToListAsync();
         int i = 0;
-        
+
         foreach (UexPoi poi in pois)
         {
             StarLocation? existingLocation = await db.StarLocations.FindAsync(i);
@@ -276,78 +274,165 @@ public class ItemCacheDb : DbContext
         return true;
     }
 
+    public async Task<bool> UpdateItems(ItemCacheDb db, HttpClient client){
+
+        List<UexCategory> categories = await db.UexCategories.Where(c => c.Type.Equals("item")).ToListAsync();
+
+        foreach (UexCategory category in categories)
+        {
+            if (category.Id < 12) continue;
+            //Get items from category
+            var responseTask = await client.GetAsync($"https://api.uexcorp.uk/2.0/items?id_category={category.Id}");
+            var response = responseTask;
+            Console.WriteLine($"UEX Items Response for Category {category.Id}: {response.StatusCode}");
+            if (response.IsSuccessStatusCode){
+                Console.WriteLine($"Parsing UEX Items Response for Category {category.Id}");
+                var itemsResponse = await response.Content.ReadFromJsonAsync<UexItemsResponse>();
+                if (itemsResponse != null)
+                {
+                    Console.WriteLine($"UEX Items Parsed Response for Category {category.Id}: {itemsResponse.HttpCode} {itemsResponse.Status} [{itemsResponse.Message}]");
+                    if (itemsResponse.Data == null) continue;
+                    foreach (UexItem item in itemsResponse.Data)
+                    {
+                        Console.WriteLine($"Processing Item: {item.Id} {item.Name}");
+                        var existingItem = await db.UexItems.FindAsync(item.Id);
+                        if (existingItem == null)
+                        {
+                            db.UexItems.Add(item);
+                            Console.WriteLine($"Added New Item: {item.Name}");
+                        }
+                        else
+                        {
+                            existingItem.parentId = item.parentId;
+                            existingItem.categoryId = item.categoryId;
+                            existingItem.vehicleId = item.vehicleId;
+                            existingItem.Name = item.Name;
+                            existingItem.Section = item.Section;
+                            existingItem.Category = item.Category;
+                            existingItem.CompanyName = item.CompanyName;
+                            existingItem.VehicleName = item.VehicleName;
+                            existingItem.Slug = item.Slug;
+                            existingItem.Size = item.Size;
+                            existingItem.Uuid = item.Uuid;
+                            existingItem.StoreUrl = item.StoreUrl;
+                            existingItem.is_exclusive_pledge = item.is_exclusive_pledge;
+                            existingItem.is_exclusive_subscriber = item.is_exclusive_subscriber;
+                            existingItem.is_exclusive_concierge = item.is_exclusive_concierge;
+                            existingItem.is_commodity = item.is_commodity;
+                            existingItem.is_harvestable = item.is_harvestable;
+                            existingItem.Notification = item.Notification;
+                            existingItem.GameVersion = item.GameVersion;
+                            existingItem.DateAdded = item.DateAdded;
+                            existingItem.DateModified = item.DateModified;
+                        }
+                    }
+                    await SaveChangesAsync();
+                    Console.WriteLine("UEX Items Updated Successfully");
+                }
+                else
+                {
+                    Console.WriteLine("UEX Items Parsing Failed");
+                }
+            }
+            else
+            {
+                Console.WriteLine("UEX Items Update Failed");
+            }
+        }
+        
+        return true;
+    }
 }
 
-/*
 
-UEX ITEM MODEL
-id int // route ID, may change during website updates
-id_parent int
-id_category int
-id_company int
-id_vehicle int // if linked to a vehicle
-name string
-section string|null // coming from categories
-category string|null // coming from categories
-company_name string|null // coming from companies
-vehicle_name string|null // coming from vehicles
-slug string // UEX URLs
-size string|null
-uuid string|null // star citizen uuid
-url_store string|null // pledge store URL
-is_exclusive_pledge int
-is_exclusive_subscriber int
-is_exclusive_concierge int
-is_commodity int
-is_harvestable int
-notification json // heads up about an item, such as known bugs, etc.
-game_version string
-date_added int // timestamp
-date_modified int // timestamp
-*/
 
 public class UexItem
 {
+    /*
+    UEX ITEM MODEL
+    id int // route ID, may change during website updates
+    id_parent int
+    id_category int
+    id_company int
+    id_vehicle int // if linked to a vehicle
+    name string
+    section string|null // coming from categories
+    category string|null // coming from categories
+    company_name string|null // coming from companies
+    vehicle_name string|null // coming from vehicles
+    slug string // UEX URLs
+    size string|null
+    uuid string|null // star citizen uuid
+    url_store string|null // pledge store URL
+    is_exclusive_pledge int
+    is_exclusive_subscriber int
+    is_exclusive_concierge int
+    is_commodity int
+    is_harvestable int
+    notification json // heads up about an item, such as known bugs, etc.
+    game_version string
+    date_added int // timestamp
+    date_modified int // timestamp
+*/
+    [JsonPropertyName("id")]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public int Id { get; set; }
+    [JsonPropertyName("id_parent")]
     public int parentId { get; set; }
+    [JsonPropertyName("id_category")]
     public int categoryId { get; set; }
-    public int vehicleId { get; set; }
+    [JsonPropertyName("id_vehicle")]
+    public int? vehicleId { get; set; }
+    [JsonPropertyName("name")]
     public string Name { get; set; }
+    [JsonPropertyName("section")]
     public string? Section { get; set; }
+    [JsonPropertyName("category")]
     public string? Category { get; set; }
+    [JsonPropertyName("company_name")]
     public string? CompanyName { get; set; }
+    [JsonPropertyName("vehicle_name")]
     public string? VehicleName { get; set; }
+    [JsonPropertyName("slug")]
     public string Slug { get; set; }
+    [JsonPropertyName("size")]
     public string? Size { get; set; }
-    public string? uuid { get; set; }
+    [JsonPropertyName("uuid")]
+    public string? Uuid { get; set; }
+    [JsonPropertyName("url_store")]
     public string? StoreUrl { get; set; }
-    public bool is_exclusive_pledge { get; set; }
-    public bool is_exclusive_subscriber { get; set; }
-    public bool is_exclusive_concierge { get; set; }
-    public bool is_commodity { get; set; }
-    public bool is_harvestable { get; set; }
+    [JsonPropertyName("is_exclusive_pledge")]
+    public int is_exclusive_pledge { get; set; }
+    [JsonPropertyName("is_exclusive_subscriber")]
+    public int is_exclusive_subscriber { get; set; }
+    [JsonPropertyName("is_exclusive_concierge")]
+    public int is_exclusive_concierge { get; set; }
+    [JsonPropertyName("is_commodity")]
+    public int is_commodity { get; set; }
+    [JsonPropertyName("is_harvestable")]
+    public int is_harvestable { get; set; }
+    [JsonPropertyName("notification")]
     public string? Notification { get; set; }
-    public string GameVersion { get; set; }
+    [JsonPropertyName("game_version")]
+    public string? GameVersion { get; set; }
+    [JsonPropertyName("date_added")]
     public int DateAdded { get; set; }
+    [JsonPropertyName("date_modified")]
     public int DateModified { get; set; }
 }
-
-/*
-
-UEX CATEGORY MODEL
-id int
-type string // item, service, contract
-section string
-name string
-is_game_related int // if exists in-game
-is_mining int // mining related
-date_added int // timestamp
-date_modified int // timestamp
-*/
-
-
 public class UexCategory
 {
+    /*
+        UEX CATEGORY MODEL
+        id int
+        type string // item, service, contract
+        section string
+        name string
+        is_game_related int // if exists in-game
+        is_mining int // mining related
+        date_added int // timestamp
+        date_modified int // timestamp
+    */
     [JsonPropertyName("id")]
     public int Id { get; set; }
     [JsonPropertyName("type")]
@@ -365,7 +450,6 @@ public class UexCategory
     [JsonPropertyName("date_modified")]
     public int DateModified { get; set; }
 }
-
 public class UexPoi
 {
     /*
@@ -511,7 +595,6 @@ public class UexPoi
     public string? JurisdictionName { get; set; }
 
 }
-
 public class UexSpaceStation
 {
     /*
@@ -650,7 +733,6 @@ public class UexSpaceStation
 
     
 }
-
 public class UexSpaceStationResponse
 {
     [JsonPropertyName("status")]
@@ -673,7 +755,6 @@ public class UexCategoryResponse
     [JsonPropertyName("message")]
     public string Message { get; set; }
 }
-
 public class UexLocationsResponse
 {
     [JsonPropertyName("status")]
@@ -682,6 +763,17 @@ public class UexLocationsResponse
     public int HttpCode { get; set; }
     [JsonPropertyName("data")]
     public List<UexPoi> Data { get; set; }
+    [JsonPropertyName("message")]
+    public string Message { get; set; }
+}
+public class UexItemsResponse
+{
+    [JsonPropertyName("status")]
+    public string Status { get; set; }
+    [JsonPropertyName("http_code")]
+    public int HttpCode { get; set; }
+    [JsonPropertyName("data")]
+    public List<UexItem> Data { get; set; }
     [JsonPropertyName("message")]
     public string Message { get; set; }
 }
