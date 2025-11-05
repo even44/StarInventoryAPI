@@ -36,6 +36,8 @@ builder.Services.AddDbContext<ItemCacheDb>(
     .EnableDetailedErrors()
 );
 
+builder.Services.AddSingleton<TokenProvider>();
+builder.Services.AddSingleton<PasswordHasher>();
 
 
 var app = builder.Build();
@@ -194,6 +196,47 @@ app.MapGet("/resetdb", async (ItemCacheDb db) =>
     await db.SaveChangesAsync();
 
     return Results.Ok("Database Cleared");
+});
+
+
+app.MapPost("/users/login", async (UserLogin login, ItemCacheDb db, TokenProvider tokenProvider, PasswordHasher passwordHasher) =>
+{
+    User? user = await db.Users.FindAsync(login.Username);
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    bool passwordValid = passwordHasher.VerifyPassword(login.Password, user.PasswordHash, user);
+    if (!passwordValid)
+    {
+        return Results.Unauthorized();
+    }
+
+    string token = tokenProvider.Create(user);
+
+    return Results.Ok(token);
+});
+
+
+app.MapPost("/users/register", async (UserLogin register, ItemCacheDb db, PasswordHasher passwordHasher) =>
+{
+    User? existingUser = await db.Users.FindAsync(register.Username);
+    if (existingUser != null)
+    {
+        return Results.Conflict("Username already exists");
+    }
+
+
+    User newUser = new User();
+    string passwordHash = passwordHasher.HashPassword(register.Password, newUser);
+    newUser.Username = register.Username;
+    newUser.PasswordHash = passwordHash;
+
+    db.Users.Add(newUser);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/login", newUser.Username);
 });
 
 
