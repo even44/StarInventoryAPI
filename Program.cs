@@ -164,6 +164,19 @@ app.MapGet("/pois", async (ItemCacheDb db) =>
     return Results.Ok(pois);
 });
 
+app.MapGet("/categories", async (ItemCacheDb db) =>
+{
+    List<UexCategory> categories = await StarDataStore.GetUexCategories(db);
+    return Results.Ok(categories);
+});
+
+app.MapGet("/items", async (ItemCacheDb db) =>
+{
+    List<UexItem> items = await StarDataStore.GetUexItems(db);
+    return Results.Ok(items);
+});
+
+
 app.MapGet("/space_stations", async (ItemCacheDb db) =>
 {
     List<UexSpaceStation> stations = await StarDataStore.GetStarSpaceStations(db);
