@@ -181,6 +181,20 @@ personalApi.MapGet("/items", async (ItemCacheDb db, HttpContext httpContext) =>
     return Results.Ok(items);
 });
 
+personalApi.MapGet("/items/{searchTerm}", async (string searchTerm, ItemCacheDb db, HttpContext httpContext) =>
+{
+
+    string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+    if (username == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    List<StarItem> items;
+    items = await StarDataStore.SearchPersonalItems(db, username, searchTerm);
+    return Results.Ok(items);
+});
+
 // ADD ONE
 personalApi.MapPost("/items/{id}", async (StarItem item, ItemCacheDb db, HttpContext httpContext) =>
 {
@@ -227,26 +241,38 @@ personalApi.MapPut("/items/{id}", async (int id, StarItem item, ItemCacheDb db, 
     return Results.Ok(reusltItem);
 }).RequireAuthorization();
 
-cacheApi.MapGet("/locations", async (ItemCacheDb db) =>
+cacheApi.MapGet("/locations", async (string searchTerm, ItemCacheDb db) =>
 {
     List<StarLocation> locations;
     locations = await db.StarLocations.ToListAsync();
     return Results.Ok(locations);
-}).RequireAuthorization();
+});
+
+cacheApi.MapGet("/locations/{searchTerm}", async (string searchTerm, ItemCacheDb db) =>
+{
+    List<StarLocation> locations;
+    locations = await StarDataStore.SearchStarLocations(db, searchTerm);
+    return Results.Ok(locations);
+});
 
 
 cacheApi.MapGet("/categories", async (ItemCacheDb db) =>
 {
     List<UexCategory> categories = await StarDataStore.GetUexCategories(db);
     return Results.Ok(categories);
-}).RequireAuthorization();
+});
 
 cacheApi.MapGet("/items", async (ItemCacheDb db) =>
 {
     List<UexItem> items = await StarDataStore.GetUexItems(db);
     return Results.Ok(items);
-}).RequireAuthorization();
+});
 
+cacheApi.MapGet("/items/{searchTerm}", async (string searchTerm, ItemCacheDb db) =>
+{
+    List<UexItem> items = await StarDataStore.SearchUexItems(db, searchTerm);
+    return Results.Ok(items);
+});
 
 adminApi.MapGet("/resetdb", async (ItemCacheDb db) =>
 {

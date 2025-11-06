@@ -93,6 +93,18 @@ public static class StarDataStore
         return items;
     }
 
+    public static async Task<List<StarItem>> SearchPersonalItems(ItemCacheDb db, string username, string searchTerm)
+    {
+        List<StarItem> items = await db.PersonalItems.Where(item => item.Name.ToLower().Contains(searchTerm.ToLower()) && item.Username == username).Take(10).ToListAsync();
+        return items;
+    }
+
+    public static async Task<List<StarLocation>> SearchStarLocations(ItemCacheDb db, string searchTerm)
+    {
+        List<StarLocation> items = await db.StarLocations.Where(loc => loc.Name.ToLower().Contains(searchTerm.ToLower())).Take(10).ToListAsync();
+        return items;
+    }
+
     public static async Task<List<UexPoi>> GetUexPois(ItemCacheDb db)
     {
         List<UexPoi> pois = await db.UexPois.ToListAsync();
@@ -108,6 +120,12 @@ public static class StarDataStore
     public static async Task<List<UexItem>> GetUexItems(ItemCacheDb db)
     {
         List<UexItem> items = await db.UexItems.ToListAsync();
+        return items;
+    }
+
+    public static async Task<List<UexItem>> SearchUexItems(ItemCacheDb db, string searchTerm)
+    {
+        List<UexItem> items = await db.UexItems.Where(item => item.Name.ToLower().Contains(searchTerm.ToLower())).Take(10).ToListAsync();
         return items;
     }
 
