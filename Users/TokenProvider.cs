@@ -23,7 +23,7 @@ class TokenProvider(IConfiguration configuration)
             Subject = new ClaimsIdentity(
                 [
                     new Claim(JwtRegisteredClaimNames.Nickname, user.Username),
-                    new Claim(ClaimTypes.Role, user.Role)
+                    new Claim("role", user.Role)
                 ]),
             Expires = DateTime.UtcNow.AddMinutes(configuration.GetValue<int>("Jwt:ExpirationInMinutes")),
             SigningCredentials = credentials,

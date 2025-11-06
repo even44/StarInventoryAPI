@@ -1,4 +1,5 @@
 
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +33,12 @@ builder.Services.AddHttpClient("UexApi", client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("dev", policy => policy.RequireClaim(ClaimTypes.Role, "dev"))
+    .AddPolicy("admin", policy => policy.RequireClaim(ClaimTypes.Role, "admin"))
+    .AddPolicy("organization", policy => policy.RequireClaim(ClaimTypes.Role, "organization"))
+    .AddPolicy("user", policy => policy.RequireClaim(ClaimTypes.Role, "user"));
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
     {
@@ -79,22 +85,23 @@ var authApi = app.MapGroup("/auth")
 
 var devApi = app.MapGroup("/dev")
     .WithTags("Development")
-    .RequireAuthorization();
+    .RequireAuthorization("dev");
 
 var personalApi = app.MapGroup("/personal")
     .WithTags("Personal Items")
-    .RequireAuthorization();
+    .RequireAuthorization("user");
 
 var orgApi = app.MapGroup("/organization")
     .WithTags("Organization Items")
-    .RequireAuthorization();
+    .RequireAuthorization("organization");
 
 var cacheApi = app.MapGroup("/cache")
-    .WithTags("Cached Items");
+    .WithTags("Cached Items")
+    .RequireAuthorization("user");
 
 var adminApi = app.MapGroup("/admin")
     .WithTags("Administration")
-    .RequireAuthorization();
+    .RequireAuthorization("admin");
 
 
 // Update the Cache from UEX and compile a list of locations
@@ -288,6 +295,7 @@ authApi.MapPost("/register", async (UserLogin register, ItemCacheDb db, Password
     string passwordHash = passwordHasher.HashPassword(register.Password, newUser);
     newUser.Username = register.Username;
     newUser.PasswordHash = passwordHash;
+    newUser.Role = "user";
 
     db.Users.Add(newUser);
     await db.SaveChangesAsync();
