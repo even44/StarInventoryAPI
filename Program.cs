@@ -1,6 +1,8 @@
+
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -114,12 +116,17 @@ app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientF
 }).RequireAuthorization();
 
 
-app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
+app.MapGet("/dev/randomitem", async (ItemCacheDb db, HttpContext httpContext) =>
 {
+    string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+    if (username == null)
+    {
+        return Results.Unauthorized();
+    }
 
-    StarItem item = StarItem.RandomItem(db);
+    StarItem item = StarItem.RandomItem(db, username);
 
-    StarItem? resultItem = await StarDataStore.AddStarItem(db, item);
+    StarItem? resultItem = await StarDataStore.AddStarItem(db, item, username);
 
     if (resultItem == null)
     {
@@ -132,17 +139,29 @@ app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
 
 
 // GET LIST
-app.MapGet("/personal/items", async (ItemCacheDb db) =>
+app.MapGet("/personal/items", async (ItemCacheDb db, HttpContext httpContext) =>
 {
+
+    string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+    if (username == null)
+    {
+        return Results.Unauthorized();
+    }
+
     List<StarItem> items;
-    items = await StarDataStore.GetPersonalItems(db);
+    items = await StarDataStore.GetPersonalItems(db, username);
     return Results.Ok(items);
 }).RequireAuthorization();
 
 // ADD ONE
-app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db) =>
+app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db, HttpContext httpContext) =>
 {
-    StarItem? resultItem = await StarDataStore.AddStarItem(db, item);
+    string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+    if (username == null)
+    {
+        return Results.Unauthorized();
+    }
+    StarItem? resultItem = await StarDataStore.AddStarItem(db, item, username);
     if (resultItem == null)
     {
         return Results.BadRequest("Invalid Location");
@@ -151,9 +170,14 @@ app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db) =>
 }).RequireAuthorization();
 
 // DELETE ONE
-app.MapDelete("/personal/items/{id}", async (int id, ItemCacheDb db) =>
+app.MapDelete("/personal/items/{id}", async (int id, ItemCacheDb db, HttpContext httpContext) =>
 {
-    bool result = await StarDataStore.DeleteStarItem(db, id);
+    string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+    if (username == null)
+    {
+        return Results.Unauthorized();
+    }
+    bool result = await StarDataStore.DeleteStarItem(db, id, username);
     if (!result)
     {
         return Results.NotFound("Item not found");
@@ -163,9 +187,14 @@ app.MapDelete("/personal/items/{id}", async (int id, ItemCacheDb db) =>
     return Results.Ok();
 }).RequireAuthorization();
 
-app.MapPut("/personal/items/{id}", async (int id, StarItem item, ItemCacheDb db) =>
+app.MapPut("/personal/items/{id}", async (int id, StarItem item, ItemCacheDb db, HttpContext httpContext) =>
 {
-    StarItem reusltItem = await StarDataStore.UpdateStarItem(db, id, item);
+    string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+    if (username == null)
+    {
+        return Results.Unauthorized();
+    }
+    StarItem reusltItem = await StarDataStore.UpdateStarItem(db, id, item, username);
 
     return Results.Ok(reusltItem);
 }).RequireAuthorization();
