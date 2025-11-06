@@ -1,4 +1,7 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +21,7 @@ builder.Services.AddCors(options =>
 var connectionString = builder.Configuration.GetConnectionString("MariaDbConnection");
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGenWithAuth();
 
 
 builder.Services.AddHttpClient("UexApi", client =>
@@ -26,8 +29,20 @@ builder.Services.AddHttpClient("UexApi", client =>
     client.BaseAddress = new Uri("https://api.uexcorp.uk/2.0/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
-builder.Services.AddAuthentication().AddJwtBearer();
+
 builder.Services.AddAuthorization();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(o =>
+    {
+        o.RequireHttpsMetadata = false;
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
 builder.Services.AddDbContext<ItemCacheDb>(
     opt => opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
@@ -56,6 +71,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.MapGet("protected", () => "You are authenticated!")
+    .RequireAuthorization();
 
 // Update the Cache from UEX and compile a list of locations
 app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientFactory) =>
@@ -94,7 +111,7 @@ app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientF
         return Results.StatusCode(500);
     }
     return Results.Ok("Cache Update Done");
-});
+}).RequireAuthorization();
 
 
 app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
@@ -111,7 +128,7 @@ app.MapGet("/dev/randomitem", async (ItemCacheDb db) =>
 
     return Results.Created($"/personal/items/{resultItem.Id}", resultItem);
 
-});
+}).RequireAuthorization();
 
 
 // GET LIST
@@ -120,7 +137,7 @@ app.MapGet("/personal/items", async (ItemCacheDb db) =>
     List<StarItem> items;
     items = await StarDataStore.GetPersonalItems(db);
     return Results.Ok(items);
-});
+}).RequireAuthorization();
 
 // ADD ONE
 app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db) =>
@@ -131,7 +148,7 @@ app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db) =>
         return Results.BadRequest("Invalid Location");
     }
     return Results.Created($"/personal/items/{resultItem.Id}", resultItem);
-});
+}).RequireAuthorization();
 
 // DELETE ONE
 app.MapDelete("/personal/items/{id}", async (int id, ItemCacheDb db) =>
@@ -144,46 +161,46 @@ app.MapDelete("/personal/items/{id}", async (int id, ItemCacheDb db) =>
     
 
     return Results.Ok();
-});
+}).RequireAuthorization();
 
 app.MapPut("/personal/items/{id}", async (int id, StarItem item, ItemCacheDb db) =>
 {
     StarItem reusltItem = await StarDataStore.UpdateStarItem(db, id, item);
 
     return Results.Ok(reusltItem);
-});
+}).RequireAuthorization();
 
 app.MapGet("/locations", async (ItemCacheDb db) =>
 {
     List<StarLocation> locations;
     locations = await db.StarLocations.ToListAsync();
     return Results.Ok(locations);
-});
+}).RequireAuthorization();
 
 app.MapGet("/pois", async (ItemCacheDb db) =>
 {
     List<UexPoi> pois = await StarDataStore.GetUexPois(db);
     return Results.Ok(pois);
-});
+}).RequireAuthorization();
 
 app.MapGet("/categories", async (ItemCacheDb db) =>
 {
     List<UexCategory> categories = await StarDataStore.GetUexCategories(db);
     return Results.Ok(categories);
-});
+}).RequireAuthorization();
 
 app.MapGet("/items", async (ItemCacheDb db) =>
 {
     List<UexItem> items = await StarDataStore.GetUexItems(db);
     return Results.Ok(items);
-});
+}).RequireAuthorization();
 
 
 app.MapGet("/space_stations", async (ItemCacheDb db) =>
 {
     List<UexSpaceStation> stations = await StarDataStore.GetStarSpaceStations(db);
     return Results.Ok(stations);
-});
+}).RequireAuthorization();
 
 app.MapGet("/resetdb", async (ItemCacheDb db) =>
 {
@@ -196,7 +213,7 @@ app.MapGet("/resetdb", async (ItemCacheDb db) =>
     await db.SaveChangesAsync();
 
     return Results.Ok("Database Cleared");
-});
+}).RequireAuthorization();
 
 
 app.MapPost("/users/login", async (UserLogin login, ItemCacheDb db, TokenProvider tokenProvider, PasswordHasher passwordHasher) =>
