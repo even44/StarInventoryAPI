@@ -73,14 +73,35 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapGet("protected", () => "You are authenticated!")
+
+var authApi = app.MapGroup("/auth")
+    .WithTags("Authentication");
+
+var devApi = app.MapGroup("/dev")
+    .WithTags("Development")
     .RequireAuthorization();
 
+var personalApi = app.MapGroup("/personal")
+    .WithTags("Personal Items")
+    .RequireAuthorization();
+
+var orgApi = app.MapGroup("/organization")
+    .WithTags("Organization Items")
+    .RequireAuthorization();
+
+var cacheApi = app.MapGroup("/cache")
+    .WithTags("Cached Items");
+
+var adminApi = app.MapGroup("/admin")
+    .WithTags("Administration")
+    .RequireAuthorization();
+
+
 // Update the Cache from UEX and compile a list of locations
-app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientFactory) =>
+devApi.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientFactory) =>
 {
     var client = httpClientFactory.CreateClient("UexApi");
-    
+
     bool catResult = await db.UpdateCategories(db, client);
     if (!catResult)
     {
@@ -105,7 +126,7 @@ app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientF
         Console.WriteLine("Failed to compile locations");
         return Results.StatusCode(500);
     }
-    
+
     bool itemResult = await db.UpdateItems(db, client);
     if (!itemResult)
     {
@@ -113,10 +134,10 @@ app.MapGet("/updateCache", async (ItemCacheDb db, IHttpClientFactory httpClientF
         return Results.StatusCode(500);
     }
     return Results.Ok("Cache Update Done");
-}).RequireAuthorization();
+});
 
 
-app.MapGet("/dev/randomitem", async (ItemCacheDb db, HttpContext httpContext) =>
+devApi.MapGet("/randomitem", async (ItemCacheDb db, HttpContext httpContext) =>
 {
     string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
     if (username == null)
@@ -135,11 +156,11 @@ app.MapGet("/dev/randomitem", async (ItemCacheDb db, HttpContext httpContext) =>
 
     return Results.Created($"/personal/items/{resultItem.Id}", resultItem);
 
-}).RequireAuthorization();
+});
 
 
 // GET LIST
-app.MapGet("/personal/items", async (ItemCacheDb db, HttpContext httpContext) =>
+personalApi.MapGet("/items", async (ItemCacheDb db, HttpContext httpContext) =>
 {
 
     string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
@@ -151,10 +172,10 @@ app.MapGet("/personal/items", async (ItemCacheDb db, HttpContext httpContext) =>
     List<StarItem> items;
     items = await StarDataStore.GetPersonalItems(db, username);
     return Results.Ok(items);
-}).RequireAuthorization();
+});
 
 // ADD ONE
-app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db, HttpContext httpContext) =>
+personalApi.MapPost("/items/{id}", async (StarItem item, ItemCacheDb db, HttpContext httpContext) =>
 {
     string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
     if (username == null)
@@ -167,10 +188,10 @@ app.MapPost("/personal/items/{id}", async (StarItem item, ItemCacheDb db, HttpCo
         return Results.BadRequest("Invalid Location");
     }
     return Results.Created($"/personal/items/{resultItem.Id}", resultItem);
-}).RequireAuthorization();
+});
 
 // DELETE ONE
-app.MapDelete("/personal/items/{id}", async (int id, ItemCacheDb db, HttpContext httpContext) =>
+personalApi.MapDelete("/items/{id}", async (int id, ItemCacheDb db, HttpContext httpContext) =>
 {
     string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
     if (username == null)
@@ -182,12 +203,12 @@ app.MapDelete("/personal/items/{id}", async (int id, ItemCacheDb db, HttpContext
     {
         return Results.NotFound("Item not found");
     }
-    
+
 
     return Results.Ok();
-}).RequireAuthorization();
+});
 
-app.MapPut("/personal/items/{id}", async (int id, StarItem item, ItemCacheDb db, HttpContext httpContext) =>
+personalApi.MapPut("/items/{id}", async (int id, StarItem item, ItemCacheDb db, HttpContext httpContext) =>
 {
     string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
     if (username == null)
@@ -199,39 +220,28 @@ app.MapPut("/personal/items/{id}", async (int id, StarItem item, ItemCacheDb db,
     return Results.Ok(reusltItem);
 }).RequireAuthorization();
 
-app.MapGet("/locations", async (ItemCacheDb db) =>
+cacheApi.MapGet("/locations", async (ItemCacheDb db) =>
 {
     List<StarLocation> locations;
     locations = await db.StarLocations.ToListAsync();
     return Results.Ok(locations);
 }).RequireAuthorization();
 
-app.MapGet("/pois", async (ItemCacheDb db) =>
-{
-    List<UexPoi> pois = await StarDataStore.GetUexPois(db);
-    return Results.Ok(pois);
-}).RequireAuthorization();
 
-app.MapGet("/categories", async (ItemCacheDb db) =>
+cacheApi.MapGet("/categories", async (ItemCacheDb db) =>
 {
     List<UexCategory> categories = await StarDataStore.GetUexCategories(db);
     return Results.Ok(categories);
 }).RequireAuthorization();
 
-app.MapGet("/items", async (ItemCacheDb db) =>
+cacheApi.MapGet("/items", async (ItemCacheDb db) =>
 {
     List<UexItem> items = await StarDataStore.GetUexItems(db);
     return Results.Ok(items);
 }).RequireAuthorization();
 
 
-app.MapGet("/space_stations", async (ItemCacheDb db) =>
-{
-    List<UexSpaceStation> stations = await StarDataStore.GetStarSpaceStations(db);
-    return Results.Ok(stations);
-}).RequireAuthorization();
-
-app.MapGet("/resetdb", async (ItemCacheDb db) =>
+adminApi.MapGet("/resetdb", async (ItemCacheDb db) =>
 {
     var itemlist = await db.PersonalItems.ToListAsync();
     var locationlist = await db.StarLocations.ToListAsync();
@@ -245,7 +255,7 @@ app.MapGet("/resetdb", async (ItemCacheDb db) =>
 }).RequireAuthorization();
 
 
-app.MapPost("/users/login", async (UserLogin login, ItemCacheDb db, TokenProvider tokenProvider, PasswordHasher passwordHasher) =>
+authApi.MapPost("/login", async (UserLogin login, ItemCacheDb db, TokenProvider tokenProvider, PasswordHasher passwordHasher) =>
 {
     User? user = await db.Users.FindAsync(login.Username);
     if (user == null)
@@ -265,7 +275,7 @@ app.MapPost("/users/login", async (UserLogin login, ItemCacheDb db, TokenProvide
 });
 
 
-app.MapPost("/users/register", async (UserLogin register, ItemCacheDb db, PasswordHasher passwordHasher) =>
+authApi.MapPost("/register", async (UserLogin register, ItemCacheDb db, PasswordHasher passwordHasher) =>
 {
     User? existingUser = await db.Users.FindAsync(register.Username);
     if (existingUser != null)
