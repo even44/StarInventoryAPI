@@ -29,8 +29,8 @@ public class StarItem
     public static StarItem RandomItem(ItemCacheDb db, string username)
     {
         Random random = new Random();
-       
-       
+
+
         db.StarLocations.Count();
 
         int randId = 0;

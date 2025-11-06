@@ -14,7 +14,8 @@ public static class StarDataStore
         {
             Console.WriteLine($"Invalid User when adding item");
             return null;
-        } else
+        }
+        else
         {
             item.Username = username;
         }
@@ -99,10 +100,16 @@ public static class StarDataStore
         return items;
     }
 
+    public static async Task<List<StarLocation>> GetStarLocations(ItemCacheDb db)
+    {
+        List<StarLocation> locations = await db.StarLocations.ToListAsync();
+        return locations;
+    }
+
     public static async Task<List<StarLocation>> SearchStarLocations(ItemCacheDb db, string searchTerm)
     {
-        List<StarLocation> items = await db.StarLocations.Where(loc => loc.Name.ToLower().Contains(searchTerm.ToLower())).Take(10).ToListAsync();
-        return items;
+        List<StarLocation> locations = await db.StarLocations.Where(loc => loc.Name.ToLower().Contains(searchTerm.ToLower())).Take(10).ToListAsync();
+        return locations;
     }
 
     public static async Task<List<UexPoi>> GetUexPois(ItemCacheDb db)

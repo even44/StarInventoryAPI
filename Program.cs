@@ -239,9 +239,23 @@ personalApi.MapPut("/items/{id}", async (int id, StarItem item, ItemCacheDb db, 
     StarItem reusltItem = await StarDataStore.UpdateStarItem(db, id, item, username);
 
     return Results.Ok(reusltItem);
-}).RequireAuthorization();
+});
 
-cacheApi.MapGet("/locations", async (string searchTerm, ItemCacheDb db) =>
+personalApi.MapGet("/clearinventory", async (ItemCacheDb db, HttpContext httpContext) =>
+{
+    string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+    if (username == null)
+    {
+        return Results.Unauthorized();
+    }
+    List<StarItem> items = await StarDataStore.GetPersonalItems(db, username);
+    db.PersonalItems.RemoveRange(items);
+    await db.SaveChangesAsync();
+
+    return Results.Ok();
+});
+
+cacheApi.MapGet("/locations", async (ItemCacheDb db) =>
 {
     List<StarLocation> locations;
     locations = await db.StarLocations.ToListAsync();
