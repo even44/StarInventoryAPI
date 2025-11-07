@@ -8,6 +8,6 @@ public class User
     public string Username { get; set; }
     [JsonIgnore]
     public string PasswordHash { get; set; }
-    public string Role { get; set; }
+    public int RoleId { get; set; }
 
 }
