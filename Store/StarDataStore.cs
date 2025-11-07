@@ -143,7 +143,42 @@ public static class StarDataStore
     }
 
 
-    // CACHE METHODS
+    // USER actions
 
+    public static async Task<List<User>> GetUsers(ItemCacheDb db)
+    {
+        return await db.Users.ToListAsync();
+    }
 
+    public static async Task<User?> GetUser(string username, ItemCacheDb db)
+    {
+        return await db.Users.FindAsync(username);
+    }
+
+    public static async Task<bool> CreateUser(UserLogin newUserLogin, string role, ItemCacheDb db, PasswordHasher passwordHasher)
+    {
+        User? existingUser = await db.Users.FindAsync(newUserLogin.Username);
+        if (existingUser != null)
+        {
+            return false;
+        }
+
+        User newUser = new User();
+        string passwordHash = passwordHasher.HashPassword(newUserLogin.Password, newUser);
+        newUser.Username = newUserLogin.Username;
+        newUser.PasswordHash = passwordHash;
+        newUser.Role = role;
+
+        db.Users.Add(newUser);
+        await db.SaveChangesAsync();
+
+        return true;
+    }
+
+    
+    public static async Task<bool> ChangeUserRole(string username, string role, ItemCacheDb db)
+    {
+        
+        return true;
+    }
 }

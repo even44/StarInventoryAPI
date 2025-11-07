@@ -25,23 +25,13 @@ public static class AuthEndpoints
         });
         authApi.MapPost("/register", async (UserLogin register, ItemCacheDb db, PasswordHasher passwordHasher) =>
         {
-            User? existingUser = await db.Users.FindAsync(register.Username);
-            if (existingUser != null)
+            if(await StarDataStore.CreateUser(register, "user", db, passwordHasher))
             {
-                return Results.Conflict("Username already exists");
+                return Results.Created($"/login", register.Username);
             }
+            return Results.BadRequest();
 
-
-            User newUser = new User();
-            string passwordHash = passwordHasher.HashPassword(register.Password, newUser);
-            newUser.Username = register.Username;
-            newUser.PasswordHash = passwordHash;
-            newUser.Role = "user";
-
-            db.Users.Add(newUser);
-            await db.SaveChangesAsync();
-
-            return Results.Created($"/login", newUser.Username);
+            
         });
     }
 }
