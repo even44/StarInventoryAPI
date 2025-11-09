@@ -189,6 +189,11 @@ public static class StarDataStore
     {
         return await db.Roles.Where(role => role.Name == name).FirstOrDefaultAsync();
     }
+
+    public static async Task<List<Role>> GetRoles(ItemCacheDb db)
+    {
+        return await db.Roles.ToListAsync();
+    }
     
     public static async Task<bool> CreateRole(string name, string claimString, ItemCacheDb db)
     {

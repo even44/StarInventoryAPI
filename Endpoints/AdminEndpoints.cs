@@ -58,9 +58,21 @@ public static class AdminEndpoints
             return Results.BadRequest();
         });
 
+
+        adminApi.MapGet("roles", async (ItemCacheDb db) =>
+        {
+            var roles = await StarDataStore.GetRoles(db);
+            return Results.Ok(roles);
+        });
+
         adminApi.MapPost("roles", async (string name, string claimString, ItemCacheDb db) =>
         {
-            
+            var success = await StarDataStore.CreateRole(name, claimString, db);
+            if (success)
+            {
+                return Results.Created($"/admin/roles", null);
+            }
+            return Results.BadRequest("Role with that name or claim already exists");
         });
     }
 }

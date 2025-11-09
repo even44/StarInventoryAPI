@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
@@ -7,7 +8,7 @@ class TokenProvider(IConfiguration configuration)
 {
 
 
-    public string Create(User user)
+    public async Task<string> Create(User user, ItemCacheDb db)
     {
         string secretKey = configuration["Jwt:Key"]!;
         if (secretKey == null)
@@ -18,12 +19,18 @@ class TokenProvider(IConfiguration configuration)
 
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
+        var role = await StarDataStore.GetRole(user.RoleId, db);
+        if (role == null)
+        {
+            throw new InvalidOperationException("User role not found.");
+        }
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(
                 [
                     new Claim(JwtRegisteredClaimNames.Nickname, user.Username),
-                    new Claim("role", user.Role)
+                    new Claim("role", role.ClaimString)
                 ]),
             Expires = DateTime.UtcNow.AddMinutes(configuration.GetValue<int>("Jwt:ExpirationInMinutes")),
             SigningCredentials = credentials,

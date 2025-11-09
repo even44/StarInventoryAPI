@@ -19,7 +19,7 @@ public static class AuthEndpoints
                 return Results.Unauthorized();
             }
 
-            string token = tokenProvider.Create(user);
+            string token = await tokenProvider.Create(user, db);
 
             return Results.Ok(token);
         });
