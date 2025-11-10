@@ -19,19 +19,22 @@ public static class AuthEndpoints
                 return Results.Unauthorized();
             }
 
-            string token = tokenProvider.Create(user);
+            string token = await tokenProvider.Create(user, db);
 
             return Results.Ok(token);
         });
         authApi.MapPost("/register", async (UserLogin register, ItemCacheDb db, PasswordHasher passwordHasher) =>
         {
-            if(await StarDataStore.CreateUser(register, "user", db, passwordHasher))
+            var role = await StarDataStore.GetRoleByClaim("user", db);
+            if (role == null)
+            {
+                return Results.InternalServerError();
+            }
+            if(await StarDataStore.CreateUser(register, role.Id, db, passwordHasher))
             {
                 return Results.Created($"/login", register.Username);
             }
             return Results.BadRequest();
-
-            
         });
     }
 }

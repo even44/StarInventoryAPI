@@ -155,7 +155,7 @@ public static class StarDataStore
         return await db.Users.FindAsync(username);
     }
 
-    public static async Task<bool> CreateUser(UserLogin newUserLogin, string role, ItemCacheDb db, PasswordHasher passwordHasher)
+    public static async Task<bool> CreateUser(UserLogin newUserLogin, int roleId, ItemCacheDb db, PasswordHasher passwordHasher)
     {
         User? existingUser = await db.Users.FindAsync(newUserLogin.Username);
         if (existingUser != null)
@@ -167,7 +167,7 @@ public static class StarDataStore
         string passwordHash = passwordHasher.HashPassword(newUserLogin.Password, newUser);
         newUser.Username = newUserLogin.Username;
         newUser.PasswordHash = passwordHash;
-        newUser.Role = role;
+        newUser.RoleId = roleId;
 
         db.Users.Add(newUser);
         await db.SaveChangesAsync();
@@ -175,7 +175,50 @@ public static class StarDataStore
         return true;
     }
 
+
+    public static async Task<Role?> GetRole(int id, ItemCacheDb db)
+    {
+        return await db.Roles.FindAsync(id);
+    }
+
+    public static async Task<Role?> GetRoleByClaim(string claimString, ItemCacheDb db)
+    {
+        return await db.Roles.Where(role => role.ClaimString == claimString).FirstOrDefaultAsync();
+    }
+    public static async Task<Role?> GetRoleByName(string name, ItemCacheDb db)
+    {
+        return await db.Roles.Where(role => role.Name == name).FirstOrDefaultAsync();
+    }
+
+    public static async Task<List<Role>> GetRoles(ItemCacheDb db)
+    {
+        return await db.Roles.ToListAsync();
+    }
     
+    public static async Task<bool> CreateRole(string name, string claimString, ItemCacheDb db)
+    {
+
+        Role? existingRole = await GetRoleByClaim(claimString, db);
+        if (existingRole != null)
+        {
+            return false;
+        }
+        existingRole = await GetRoleByName(claimString, db);
+        if (existingRole != null)
+        {
+            return false;
+        }
+
+        await db.Roles.AddAsync(new Role
+        {
+            Id = 0,
+            Name = name,
+            ClaimString = claimString
+        });
+        await db.SaveChangesAsync();
+        return true;
+    }
+
     public static async Task<bool> ChangeUserRole(string username, string role, ItemCacheDb db)
     {
         

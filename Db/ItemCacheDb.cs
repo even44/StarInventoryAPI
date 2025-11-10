@@ -14,6 +14,7 @@ public class ItemCacheDb : DbContext
     public DbSet<UexPoi> UexPois => Set<UexPoi>();
     public DbSet<UexSpaceStation> UexSpaceStations => Set<UexSpaceStation>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<Role> Roles => Set<Role>();
     
     public async Task<bool> UpdateCategories(ItemCacheDb db, HttpClient client)
     {

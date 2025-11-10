@@ -31,8 +31,8 @@ builder.Services.AddSwaggerGenWithAuth();
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("dev", policy => policy.RequireClaim(ClaimTypes.Role, ["dev"]))
     .AddPolicy("admin", policy => policy.RequireClaim(ClaimTypes.Role, ["admin", "dev"]))
-    .AddPolicy("organization", policy => policy.RequireClaim(ClaimTypes.Role, ["organization", "admin", "dev"]))
-    .AddPolicy("user", policy => policy.RequireClaim(ClaimTypes.Role, ["user", "organization", "admin", "dev"]));
+    .AddPolicy("organization", policy => policy.RequireClaim(ClaimTypes.Role, ["org", "admin", "dev"]))
+    .AddPolicy("user", policy => policy.RequireClaim(ClaimTypes.Role, ["user", "org", "admin", "dev"]));
 
 
 // Define the JWT Authentication Scheme

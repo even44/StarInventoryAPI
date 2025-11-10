@@ -43,13 +43,36 @@ public static class AdminEndpoints
             return Results.Ok(user);
         });
 
-        adminApi.MapPost("/register/{role}", async (string role, UserLogin newUserLogin, ItemCacheDb db, PasswordHasher passwordHasher) =>
+        adminApi.MapPost("/register/{role}", async (int roleId, UserLogin newUserLogin, ItemCacheDb db, PasswordHasher passwordHasher) =>
         {
-            if(await StarDataStore.CreateUser(newUserLogin, role, db, passwordHasher))
+            Role? role = await StarDataStore.GetRole(roleId, db);
+            if (role == null)
+            {
+                return Results.BadRequest();
+            }
+
+            if (await StarDataStore.CreateUser(newUserLogin, roleId, db, passwordHasher))
             {
                 return Results.Created($"/login", newUserLogin.Username);
             }
             return Results.BadRequest();
+        });
+
+
+        adminApi.MapGet("roles", async (ItemCacheDb db) =>
+        {
+            var roles = await StarDataStore.GetRoles(db);
+            return Results.Ok(roles);
+        });
+
+        adminApi.MapPost("roles", async (string name, string claimString, ItemCacheDb db) =>
+        {
+            var success = await StarDataStore.CreateRole(name, claimString, db);
+            if (success)
+            {
+                return Results.Created($"/admin/roles", null);
+            }
+            return Results.BadRequest("Role with that name or claim already exists");
         });
     }
 }
