@@ -1,6 +1,6 @@
 services:
   StarInventoryAPI:
-    image: counter-image
+    image: ghcr.io/even44/starinventoryapi:master
     ports:
       - 8080:8080
     environment:
