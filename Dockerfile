@@ -16,6 +16,6 @@ ENV ConnectionStrings__MariaDbConnection=""
 ENV Jwt__Key=""
 ENV Jwt__Issuer="StarInventoryAPI"
 ENV Jwt__Audience="account"
-ENV Jwt__ExpirationInMinutes=30
+ENV Jwt__ExpirationInMinutes=5
 ENTRYPOINT ["dotnet", "StarInventoryAPI.dll"]
 
