@@ -1,0 +1,9 @@
+services:
+  StarInventoryAPI:
+    image: counter-image
+    ports:
+      - 8080:8080
+    environment:
+      ConnectionStrings__MariaDbConnection: Server=84.211.10.209;Port=3006;Database=StarInventory;Uid=root;Pwd=supersecretdonotsharepassword;
+      Jwt__Key: averylongstingingoeingobnsdojgbsdgokngdslgn
+      Jwt__ExpirationInMinutes: 120
