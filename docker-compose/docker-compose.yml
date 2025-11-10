@@ -3,7 +3,6 @@ services:
     image: ghcr.io/even44/starinventoryapi:master
     ports:
       - 8080:8080
-    environment:
-      ConnectionStrings__MariaDbConnection: Server=84.211.10.209;Port=3006;Database=StarInventory;Uid=root;Pwd=supersecretdonotsharepassword;
-      Jwt__Key: averylongstingingoeingobnsdojgbsdgokngdslgn
-      Jwt__ExpirationInMinutes: 120
+    env_file:
+      - ./.env
+
