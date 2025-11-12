@@ -221,7 +221,18 @@ public static class StarDataStore
 
     public static async Task<bool> ChangeUserRole(string username, string role, ItemCacheDb db)
     {
-        
+        User? user = await db.Users.FirstOrDefaultAsync(u => u.Username == username);
+        if (user == null)
+        {
+            return false;
+        }
+        Role? existingRole = await db.Roles.FirstOrDefaultAsync(r => r.ClaimString == role);
+        if (role == null)
+        {
+            return false;
+        }
+        user.RoleId = existingRole.Id;
+        await db.SaveChangesAsync();
         return true;
     }
 }

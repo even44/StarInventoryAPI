@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,6 +42,16 @@ public static class AdminEndpoints
             }
 
             return Results.Ok(user);
+        });
+
+        adminApi.MapPost("/users/{username}/{roleClaimString}", async (string username, string roleClaimString, ItemCacheDb db) =>
+        {
+            if (await StarDataStore.ChangeUserRole(username, roleClaimString, db))
+            {
+                return Results.Ok();
+            }
+
+            return Results.BadRequest();
         });
 
         adminApi.MapPost("/register/{role}", async (int roleId, UserLogin newUserLogin, ItemCacheDb db, PasswordHasher passwordHasher) =>
