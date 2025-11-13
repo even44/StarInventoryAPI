@@ -9,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
+builder.Services.AddProblemDetails();
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // Configure cors policies for the app
 builder.Services.AddCors(options =>
@@ -59,6 +61,8 @@ builder.Services.AddDbContext<ItemCacheDb>(
     .EnableDetailedErrors()
 );
 
+
+
 // Add HttpClient for DI for use with Uex API
 builder.Services.AddHttpClient("UexApi", client =>
 {
@@ -71,6 +75,9 @@ builder.Services.AddSingleton<TokenProvider>();
 builder.Services.AddSingleton<PasswordHasher>();
 
 var app = builder.Build();
+
+
+
 
 // Enable CORS Policies and Auth
 app.UseCors(MyAllowSpecificOrigins);
@@ -86,6 +93,19 @@ if (app.Environment.IsDevelopment())
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
         options.RoutePrefix = string.Empty;
+    });
+
+    app.UseStatusCodePages(statusCodeHandlerApp =>
+    {
+    statusCodeHandlerApp.Run(async httpContext =>
+    {
+        var pds = httpContext.RequestServices.GetService<IProblemDetailsService>();
+        if (pds == null
+            || !await pds.TryWriteAsync(new() { HttpContext = httpContext }))
+        {
+            await httpContext.Response.WriteAsync("Fallback: An error occurred.");
+        }
+    });
     });
 }
 

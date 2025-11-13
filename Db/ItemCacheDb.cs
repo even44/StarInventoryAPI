@@ -15,7 +15,19 @@ public class ItemCacheDb : DbContext
     public DbSet<UexSpaceStation> UexSpaceStations => Set<UexSpaceStation>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
-    
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Role>().HasData(
+            new Role { Id = 1, Name = "User", ClaimString = "user" },
+            new Role { Id = 2, Name = "Org Manager", ClaimString = "org" },
+            new Role { Id = 3, Name = "Admin", ClaimString = "admin" },
+            new Role { Id = 4, Name = "Developer", ClaimString = "dev" }
+        );
+
+    }
+
+
     public async Task<bool> UpdateCategories(ItemCacheDb db, HttpClient client)
     {
         var responseTask = await client.GetAsync("https://api.uexcorp.uk/2.0/categories");

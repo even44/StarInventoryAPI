@@ -44,7 +44,7 @@ public static class AdminEndpoints
             return Results.Ok(user);
         });
 
-        adminApi.MapPost("/users/{username}/{roleClaimString}", async (string username, string roleClaimString, ItemCacheDb db) =>
+        adminApi.MapPut("/users/{username}/{roleClaimString}", async (string username, string roleClaimString, ItemCacheDb db) =>
         {
             if (await UserDataStore.ChangeUserRole(username, roleClaimString, db))
             {
