@@ -19,26 +19,26 @@ public static class CacheEndpoints
         cacheApi.MapGet("/locations/{searchTerm}", async (string searchTerm, ItemCacheDb db) =>
         {
             List<StarLocation> locations;
-            locations = await StarDataStore.SearchStarLocations(db, searchTerm);
+            locations = await CacheDataStore.SearchStarLocations(db, searchTerm);
             return Results.Ok(locations);
         });
 
 
         cacheApi.MapGet("/categories", async (ItemCacheDb db) =>
         {
-            List<UexCategory> categories = await StarDataStore.GetUexCategories(db);
+            List<UexCategory> categories = await CacheDataStore.GetUexCategories(db);
             return Results.Ok(categories);
         });
 
         cacheApi.MapGet("/items", async (ItemCacheDb db) =>
         {
-            List<UexItem> items = await StarDataStore.GetUexItems(db);
+            List<UexItem> items = await CacheDataStore.GetUexItems(db);
             return Results.Ok(items);
         });
 
         cacheApi.MapGet("/items/{searchTerm}", async (string searchTerm, ItemCacheDb db) =>
         {
-            List<UexItem> items = await StarDataStore.SearchUexItems(db, searchTerm);
+            List<UexItem> items = await CacheDataStore.SearchUexItems(db, searchTerm);
             return Results.Ok(items);
         });
     }

@@ -18,7 +18,7 @@ public static class PersonalEndpoints
                 }
 
                 List<StarItem> items;
-                items = await StarDataStore.GetPersonalItems(db, username);
+                items = await PersonalInventoryDataStore.GetPersonalItems(db, username);
                 return Results.Ok(items);
             });
 
@@ -32,7 +32,7 @@ public static class PersonalEndpoints
                 }
 
                 List<StarItem> items;
-                items = await StarDataStore.SearchPersonalItems(db, username, searchTerm);
+                items = await PersonalInventoryDataStore.SearchPersonalItems(db, username, searchTerm);
                 return Results.Ok(items);
             });
 
@@ -44,7 +44,7 @@ public static class PersonalEndpoints
                 {
                     return Results.Unauthorized();
                 }
-                StarItem? resultItem = await StarDataStore.AddStarItem(db, item, username);
+                StarItem? resultItem = await PersonalInventoryDataStore.AddStarItem(db, item, username);
                 if (resultItem == null)
                 {
                     return Results.BadRequest("Invalid Location");
@@ -60,7 +60,7 @@ public static class PersonalEndpoints
                 {
                     return Results.Unauthorized();
                 }
-                bool result = await StarDataStore.DeleteStarItem(db, id, username);
+                bool result = await PersonalInventoryDataStore.DeleteStarItem(db, id, username);
                 if (!result)
                 {
                     return Results.NotFound("Item not found");
@@ -77,7 +77,7 @@ public static class PersonalEndpoints
                 {
                     return Results.Unauthorized();
                 }
-                StarItem reusltItem = await StarDataStore.UpdateStarItem(db, id, item, username);
+                StarItem reusltItem = await PersonalInventoryDataStore.UpdateStarItem(db, id, item, username);
 
                 return Results.Ok(reusltItem);
             });
@@ -89,7 +89,7 @@ public static class PersonalEndpoints
                 {
                     return Results.Unauthorized();
                 }
-                List<StarItem> items = await StarDataStore.GetPersonalItems(db, username);
+                List<StarItem> items = await PersonalInventoryDataStore.GetPersonalItems(db, username);
                 db.PersonalItems.RemoveRange(items);
                 await db.SaveChangesAsync();
 

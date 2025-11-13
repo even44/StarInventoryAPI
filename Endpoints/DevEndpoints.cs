@@ -56,7 +56,7 @@ public static class DevEndpoints
 
             StarItem item = StarItem.RandomItem(db, username);
 
-            StarItem? resultItem = await StarDataStore.AddStarItem(db, item, username);
+            StarItem? resultItem = await PersonalInventoryDataStore.AddStarItem(db, item, username);
 
             if (resultItem == null)
             {

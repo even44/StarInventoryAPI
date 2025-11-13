@@ -28,14 +28,14 @@ public static class AdminEndpoints
 
         adminApi.MapGet("/users", async (ItemCacheDb db) =>
         {
-            var userList = await StarDataStore.GetUsers(db);
+            var userList = await UserDataStore.GetUsers(db);
 
             return Results.Ok(userList);
         });
 
         adminApi.MapGet("/users/{username}", async (string username, ItemCacheDb db) =>
         {
-            User? user = await StarDataStore.GetUser(username, db);
+            User? user = await UserDataStore.GetUser(username, db);
             if (user == null)
             {
                 return Results.BadRequest("User does not exist");
@@ -46,7 +46,7 @@ public static class AdminEndpoints
 
         adminApi.MapPost("/users/{username}/{roleClaimString}", async (string username, string roleClaimString, ItemCacheDb db) =>
         {
-            if (await StarDataStore.ChangeUserRole(username, roleClaimString, db))
+            if (await UserDataStore.ChangeUserRole(username, roleClaimString, db))
             {
                 return Results.Ok();
             }
@@ -56,13 +56,13 @@ public static class AdminEndpoints
 
         adminApi.MapPost("/register/{role}", async (int roleId, UserLogin newUserLogin, ItemCacheDb db, PasswordHasher passwordHasher) =>
         {
-            Role? role = await StarDataStore.GetRole(roleId, db);
+            Role? role = await RoleDataStore.GetRole(roleId, db);
             if (role == null)
             {
                 return Results.BadRequest();
             }
 
-            if (await StarDataStore.CreateUser(newUserLogin, roleId, db, passwordHasher))
+            if (await UserDataStore.CreateUser(newUserLogin, roleId, db, passwordHasher))
             {
                 return Results.Created($"/login", newUserLogin.Username);
             }
@@ -72,13 +72,13 @@ public static class AdminEndpoints
 
         adminApi.MapGet("roles", async (ItemCacheDb db) =>
         {
-            var roles = await StarDataStore.GetRoles(db);
+            var roles = await RoleDataStore.GetRoles(db);
             return Results.Ok(roles);
         });
 
         adminApi.MapPost("roles", async (string name, string claimString, ItemCacheDb db) =>
         {
-            var success = await StarDataStore.CreateRole(name, claimString, db);
+            var success = await RoleDataStore.CreateRole(name, claimString, db);
             if (success)
             {
                 return Results.Created($"/admin/roles", null);
