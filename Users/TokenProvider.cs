@@ -19,7 +19,7 @@ class TokenProvider(IConfiguration configuration)
 
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-        var role = await StarDataStore.GetRole(user.RoleId, db);
+        var role = await RoleDataStore.GetRole(user.RoleId, db);
         if (role == null)
         {
             throw new InvalidOperationException("User role not found.");
