@@ -32,7 +32,7 @@ public static class AuthEndpoints
             }
             if(await UserDataStore.CreateUser(register, role.Id, db, passwordHasher))
             {
-                return Results.Created($"/login", register.Username);
+                return Results.Ok();
             }
             return Results.BadRequest();
         });
