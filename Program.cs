@@ -93,6 +93,7 @@ if (app.Environment.IsDevelopment())
 app.MapAuthEndpoints();
 app.MapAdminEndpoints();
 app.MapCacheEndpoints();
+app.MapOrgEndpoints();
 app.MapDevEndpoints();
 app.MapPersonalEndpoints();
 
