@@ -16,7 +16,6 @@ public static class OrgDataStore
 
         return new OrgInventory
         {
-            Users = users,
             Items = items
         };
     }
