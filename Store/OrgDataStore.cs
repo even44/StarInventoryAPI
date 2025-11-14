@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 public static class OrgDataStore
 {
-    public static async Task<OrgInventory> GetOrgInventory(ItemCacheDb db)
+    public static async Task<List<StarItem>> GetOrgInventory(ItemCacheDb db)
     {
         var users = await db.OrgInventoryUsers.ToListAsync();
         List<StarItem> items = new List<StarItem>();
@@ -14,10 +14,7 @@ public static class OrgDataStore
             items.AddRange(userItems);
         }
 
-        return new OrgInventory
-        {
-            Items = items
-        };
+        return items;
     }
 
     public static async Task<bool> AddOrgInventoryUser(string username, ItemCacheDb db)
