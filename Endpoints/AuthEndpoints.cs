@@ -20,8 +20,14 @@ public static class AuthEndpoints
             }
 
             string token = await tokenProvider.Create(user, db);
+            string username = user.Username;
+            Role? role = await RoleDataStore.GetRole(user.RoleId, db);
+            if (role == null)
+            {
+                return Results.InternalServerError();
+            }
 
-            return Results.Ok(token);
+            return Results.Ok(new LoginResponse(token, user.Username, role.ClaimString));
         });
         authApi.MapPost("/register", async (UserLogin register, ItemCacheDb db, PasswordHasher passwordHasher) =>
         {

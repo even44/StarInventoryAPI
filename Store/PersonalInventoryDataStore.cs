@@ -23,7 +23,7 @@ public static class PersonalInventoryDataStore
             return null;
         }
 
-        var existingItem = await db.PersonalItems.FirstOrDefaultAsync(i => i.Name == item.Name && i.LocationId == item.LocationId);
+        var existingItem = await db.PersonalItems.FirstOrDefaultAsync(i => i.Name == item.Name && i.LocationId == item.LocationId && i.Username == username);
         if (existingItem == null)
         {
             db.PersonalItems.Add(item);

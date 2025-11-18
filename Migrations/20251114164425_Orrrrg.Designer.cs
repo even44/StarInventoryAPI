@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StarInventoryAPI.Migrations
 {
     [DbContext(typeof(ItemCacheDb))]
-    partial class ItemCacheDbModelSnapshot : ModelSnapshot
+    [Migration("20251114164425_Orrrrg")]
+    partial class Orrrrg
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,32 +52,6 @@ namespace StarInventoryAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ClaimString = "user",
-                            Name = "User"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ClaimString = "org",
-                            Name = "Org Manager"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ClaimString = "admin",
-                            Name = "Admin"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            ClaimString = "dev",
-                            Name = "Developer"
-                        });
                 });
 
             modelBuilder.Entity("StarItem", b =>

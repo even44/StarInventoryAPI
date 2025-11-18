@@ -42,7 +42,7 @@ public class StarItem
         bool randIsShared = random.GetItems<bool>([true, false], 1)[0];
 
 
-        return new StarItem(randId, randName, 0, locationId, username, randQuantity, randIsShared);
+        return new StarItem(randId, randName, 0, locationId, Username, randQuantity, randIsShared);
 
     }
 
