@@ -31,22 +31,27 @@ builder.Services.AddSwaggerGenWithAuth();
 
 // Build the different policies and defining requred claims for authorization
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("dev", policy => policy.RequireClaim(ClaimTypes.Role, ["dev"]))
-    .AddPolicy("admin", policy => policy.RequireClaim(ClaimTypes.Role, ["admin", "dev"]))
-    .AddPolicy("organization", policy => policy.RequireClaim(ClaimTypes.Role, ["org", "admin", "dev"]))
-    .AddPolicy("user", policy => policy.RequireClaim(ClaimTypes.Role, ["user", "org", "admin", "dev"]));
+    .AddPolicy("dev", policy => policy.RequireClaim("groups", ["SG-STARINVENTORY-DEV"]))
+    .AddPolicy("admin", policy => policy.RequireClaim("groups", ["SG-STARINVENTORY-ADMIN"]))
+    .AddPolicy("organization", policy => policy.RequireClaim("groups", ["SG-STARINVENTORY-ORG"]))
+    .AddPolicy("user", policy => policy.RequireClaim("groups", ["SG-STARINVENTORY-USER"]));
 
 
 // Define the JWT Authentication Scheme
+var tempHttp = new HttpClient();
+var jwksJson = await tempHttp.GetAsync($"https://auth.even44.no/application/o/star-inventory/jwks/");
+jwksJson.EnsureSuccessStatusCode();
+var signingKey = JsonWebKeySet.Create(await jwksJson.Content.ReadAsStringAsync()).Keys.First();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
     {
         o.RequireHttpsMetadata = false;
         o.TokenValidationParameters = new TokenValidationParameters
+        
         {
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            IssuerSigningKey = signingKey,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidAudience = builder.Configuration["Jwt:ClientId"],
             ClockSkew = TimeSpan.Zero
         };
     });
@@ -69,6 +74,8 @@ builder.Services.AddHttpClient("UexApi", client =>
     client.BaseAddress = new Uri("https://api.uexcorp.uk/2.0/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
+
+
 
 // Adding custom services for dependency injection
 builder.Services.AddSingleton<TokenProvider>();
