@@ -15,7 +15,7 @@ public class ItemCacheDb : DbContext
     public DbSet<UexSpaceStation> UexSpaceStations => Set<UexSpaceStation>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
-
+    public DbSet<OrgInventoryUser> OrgInventoryUsers => Set<OrgInventoryUser>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Role>().HasData(
@@ -27,7 +27,7 @@ public class ItemCacheDb : DbContext
 
     }
 
-    public DbSet<OrgInventoryUser> OrgInventoryUsers => Set<OrgInventoryUser>();
+ 
 
     public async Task<bool> UpdateCategories(ItemCacheDb db, HttpClient client)
     {
