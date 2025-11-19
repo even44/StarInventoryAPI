@@ -30,53 +30,6 @@ namespace StarInventoryAPI.Migrations
                     b.ToTable("OrgInventoryUsers");
                 });
 
-            modelBuilder.Entity("Role", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ClaimString")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Roles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ClaimString = "user",
-                            Name = "User"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ClaimString = "org",
-                            Name = "Org Manager"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ClaimString = "admin",
-                            Name = "Admin"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            ClaimString = "dev",
-                            Name = "Developer"
-                        });
-                });
-
             modelBuilder.Entity("StarItem", b =>
                 {
                     b.Property<int>("Id")
@@ -650,13 +603,6 @@ namespace StarInventoryAPI.Migrations
                 {
                     b.Property<string>("Username")
                         .HasColumnType("varchar(255)");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
 
                     b.HasKey("Username");
 

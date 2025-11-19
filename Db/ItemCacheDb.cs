@@ -14,18 +14,7 @@ public class ItemCacheDb : DbContext
     public DbSet<UexPoi> UexPois => Set<UexPoi>();
     public DbSet<UexSpaceStation> UexSpaceStations => Set<UexSpaceStation>();
     public DbSet<User> Users => Set<User>();
-    public DbSet<Role> Roles => Set<Role>();
     public DbSet<OrgInventoryUser> OrgInventoryUsers => Set<OrgInventoryUser>();
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Role>().HasData(
-            new Role { Id = 1, Name = "User", ClaimString = "user" },
-            new Role { Id = 2, Name = "Org Manager", ClaimString = "org" },
-            new Role { Id = 3, Name = "Admin", ClaimString = "admin" },
-            new Role { Id = 4, Name = "Developer", ClaimString = "dev" }
-        );
-
-    }
 
  
 

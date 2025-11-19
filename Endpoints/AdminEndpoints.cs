@@ -33,57 +33,5 @@ public static class AdminEndpoints
             return Results.Ok(userList);
         });
 
-        adminApi.MapGet("/users/{username}", async (string username, ItemCacheDb db) =>
-        {
-            User? user = await UserDataStore.GetUser(username, db);
-            if (user == null)
-            {
-                return Results.BadRequest("User does not exist");
-            }
-
-            return Results.Ok(user);
-        });
-
-        adminApi.MapPut("/users/{username}/{roleClaimString}", async (string username, string roleClaimString, ItemCacheDb db) =>
-        {
-            if (await UserDataStore.ChangeUserRole(username, roleClaimString, db))
-            {
-                return Results.Ok();
-            }
-
-            return Results.BadRequest();
-        });
-
-        adminApi.MapPost("/register/{role}", async (int roleId, UserLogin newUserLogin, ItemCacheDb db, PasswordHasher passwordHasher) =>
-        {
-            Role? role = await RoleDataStore.GetRole(roleId, db);
-            if (role == null)
-            {
-                return Results.BadRequest();
-            }
-
-            if (await UserDataStore.CreateUser(newUserLogin, roleId, db, passwordHasher))
-            {
-                return Results.Created($"/login", newUserLogin.Username);
-            }
-            return Results.BadRequest();
-        });
-
-
-        adminApi.MapGet("roles", async (ItemCacheDb db) =>
-        {
-            var roles = await RoleDataStore.GetRoles(db);
-            return Results.Ok(roles);
-        });
-
-        adminApi.MapPost("roles", async (string name, string claimString, ItemCacheDb db) =>
-        {
-            var success = await RoleDataStore.CreateRole(name, claimString, db);
-            if (success)
-            {
-                return Results.Created($"/admin/roles", null);
-            }
-            return Results.BadRequest("Role with that name or claim already exists");
-        });
     }
 }

@@ -39,7 +39,7 @@ builder.Services.AddAuthorizationBuilder()
 
 // Define the JWT Authentication Scheme
 var tempHttp = new HttpClient();
-var jwksJson = await tempHttp.GetAsync($"https://auth.even44.no/application/o/star-inventory/jwks/");
+var jwksJson = await tempHttp.GetAsync(builder.Configuration["Jwt:Issuer"] + "jwks/");
 jwksJson.EnsureSuccessStatusCode();
 var signingKey = JsonWebKeySet.Create(await jwksJson.Content.ReadAsStringAsync()).Keys.First();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -78,7 +78,7 @@ builder.Services.AddHttpClient("UexApi", client =>
 
 
 // Adding custom services for dependency injection
-builder.Services.AddSingleton<TokenProvider>();
+
 builder.Services.AddSingleton<PasswordHasher>();
 
 var app = builder.Build();
@@ -117,7 +117,6 @@ if (app.Environment.IsDevelopment())
 }
 
 // Mapping endpoints for the api
-app.MapAuthEndpoints();
 app.MapAdminEndpoints();
 app.MapCacheEndpoints();
 app.MapOrgEndpoints();

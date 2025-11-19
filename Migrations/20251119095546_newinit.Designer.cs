@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StarInventoryAPI.Migrations
 {
     [DbContext(typeof(ItemCacheDb))]
-    [Migration("20251109205505_Roleupdatee")]
-    partial class Roleupdatee
+    [Migration("20251119095546_newinit")]
+    partial class newinit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,17 +23,14 @@ namespace StarInventoryAPI.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("Role", b =>
+            modelBuilder.Entity("OrgInventoryUser", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.Property<string>("Username")
+                        .HasColumnType("varchar(255)");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.HasKey("Username");
 
-                    b.HasKey("Id");
-
-                    b.ToTable("Roles");
+                    b.ToTable("OrgInventoryUsers");
                 });
 
             modelBuilder.Entity("StarItem", b =>
@@ -609,13 +606,6 @@ namespace StarInventoryAPI.Migrations
                 {
                     b.Property<string>("Username")
                         .HasColumnType("varchar(255)");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
 
                     b.HasKey("Username");
 

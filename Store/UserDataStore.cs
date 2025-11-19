@@ -23,10 +23,8 @@ public static class UserDataStore
         }
 
         User newUser = new User();
-        string passwordHash = passwordHasher.HashPassword(newUserLogin.Password, newUser);
+
         newUser.Username = newUserLogin.Username;
-        newUser.PasswordHash = passwordHash;
-        newUser.RoleId = roleId;
 
         db.Users.Add(newUser);
         await db.SaveChangesAsync();
@@ -34,20 +32,5 @@ public static class UserDataStore
         return true;
     }
 
-    public static async Task<bool> ChangeUserRole(string username, string role, ItemCacheDb db)
-    {
-        User? user = await db.Users.FirstOrDefaultAsync(u => u.Username == username);
-        if (user == null)
-        {
-            return false;
-        }
-        Role? existingRole = await db.Roles.FirstOrDefaultAsync(r => r.ClaimString == role);
-        if (existingRole == null)
-        {
-            return false;
-        }
-        user.RoleId = existingRole.Id;
-        await db.SaveChangesAsync();
-        return true;
-    }
+
 }
