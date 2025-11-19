@@ -7,13 +7,10 @@ public static class PersonalInventoryDataStore
         var user = await db.Users.FirstOrDefaultAsync(u => u.Username == username);
         if (user == null)
         {
-            Console.WriteLine($"Invalid User when adding item");
-            return null;
+            db.Users.Add(new User{Username = username});
+            Console.WriteLine($"User does not exist when creating item, adding user");
         }
-        else
-        {
-            item.Username = username;
-        }
+        item.Username = username;
 
 
         var location = await db.StarLocations.FirstOrDefaultAsync(loc => loc.Id == item.LocationId);
