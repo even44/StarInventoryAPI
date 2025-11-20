@@ -13,9 +13,9 @@ public static class OrgEndpoints
             return await OrgDataStore.GetOrgInventory(db);
         });
 
-        orgApi.MapPost("participatingusers", async (string username, ItemCacheDb db) =>
+        orgApi.MapPost("participatingusers", async (User user, ItemCacheDb db) =>
         {
-            bool result = await OrgDataStore.AddOrgInventoryUser(username, db);
+            bool result = await OrgDataStore.AddOrgInventoryUser(user.Username, db);
             if (!result)
             {
                 return Results.Conflict("User already exists in organization inventory.");
@@ -23,7 +23,7 @@ public static class OrgEndpoints
             return Results.Ok();
         }).RequireAuthorization("organization");
 
-        orgApi.MapDelete("participatingusers", async (string username, ItemCacheDb db) =>
+        orgApi.MapDelete("participatingusers/{username}", async (string username, ItemCacheDb db) =>
         {
             bool result = await OrgDataStore.RemoveOrgInventoryUser(username, db);
             if (!result)
