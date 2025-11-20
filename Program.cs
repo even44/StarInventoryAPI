@@ -31,10 +31,10 @@ builder.Services.AddSwaggerGenWithAuth();
 
 // Build the different policies and defining requred claims for authorization
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("dev", policy => policy.RequireClaim("groups", ["SG-STARINVENTORY-DEV"]))
-    .AddPolicy("admin", policy => policy.RequireClaim("groups", ["SG-STARINVENTORY-ADMIN"]))
-    .AddPolicy("organization", policy => policy.RequireClaim("groups", ["SG-STARINVENTORY-ORG"]))
-    .AddPolicy("user", policy => policy.RequireClaim("groups", ["SG-STARINVENTORY-USER"]));
+    .AddPolicy("dev", policy => policy.RequireRole(["Dev"]))
+    .AddPolicy("admin", policy => policy.RequireRole(["Admin"]))
+    .AddPolicy("organization", policy => policy.RequireRole(["Org"]))
+    .AddPolicy("user", policy => policy.RequireRole(["User"]));
 
 
 // Define the JWT Authentication Scheme
