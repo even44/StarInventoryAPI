@@ -13,7 +13,7 @@ public static class OrgEndpoints
             return await OrgDataStore.GetOrgInventory(db);
         });
 
-        orgApi.MapPost("users", async (string username, ItemCacheDb db) =>
+        orgApi.MapPost("participatingusers", async (string username, ItemCacheDb db) =>
         {
             bool result = await OrgDataStore.AddOrgInventoryUser(username, db);
             if (!result)
@@ -23,7 +23,7 @@ public static class OrgEndpoints
             return Results.Ok();
         }).RequireAuthorization("organization");
 
-        orgApi.MapDelete("users", async (string username, ItemCacheDb db) =>
+        orgApi.MapDelete("participatingusers", async (string username, ItemCacheDb db) =>
         {
             bool result = await OrgDataStore.RemoveOrgInventoryUser(username, db);
             if (!result)
@@ -33,9 +33,13 @@ public static class OrgEndpoints
             return Results.Ok();
         }).RequireAuthorization("organization");
 
-        orgApi.MapGet("users", async (ItemCacheDb db) =>
+        orgApi.MapGet("participatingusers", async (ItemCacheDb db) =>
         {
             return await OrgDataStore.GetOrgInventoryUsers(db);
+        });
+
+        orgApi.MapGet("/users", async (ItemCacheDb db) => {
+            return await UserDataStore.GetUsers(db);
         });
         
     }
