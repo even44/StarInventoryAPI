@@ -38,6 +38,7 @@ public static class PersonalInventoryDataStore
 
     public static async Task<StarItem> UpdateStarItem(ItemCacheDb db, int id, StarItem item, string username)
     {
+        item.Id = id;
         StarItem? existingItem = await db.PersonalItems.FindAsync(id);
         if (existingItem == null)
         {
@@ -50,16 +51,45 @@ public static class PersonalInventoryDataStore
         }
 
 
+      
 
-        item.Id = id;
+        // Merge if location change
+        if (existingItem.LocationId != item.LocationId)
+        {
+            var existingItemAtNewLocation = await db.PersonalItems.Where(i => i.LocationId == item.LocationId && i.UexIdentifier == item.UexIdentifier).FirstOrDefaultAsync();
+            if (existingItemAtNewLocation == null)
+            {
+                existingItem.LocationId = item.LocationId;
+                existingItem.IsSharedWithOrganization = item.IsSharedWithOrganization;
+                existingItem.Quantity = item.Quantity;
+            } else
+            {
 
-        existingItem.Name = item.Name;
-        existingItem.IsSharedWithOrganization = item.IsSharedWithOrganization;
-        existingItem.Quantity = item.Quantity;
+                existingItemAtNewLocation.Quantity += item.Quantity;
+                existingItemAtNewLocation.IsSharedWithOrganization = existingItemAtNewLocation.IsSharedWithOrganization || item.IsSharedWithOrganization;
+
+
+                existingItem.Quantity -= item.Quantity;
+                if (existingItem.Quantity <= 0)
+                {
+                    db.PersonalItems.Remove(existingItem);
+                }
+
+                await db.SaveChangesAsync();
+                return existingItemAtNewLocation;
+            }
+        } else
+        {
+            existingItem.IsSharedWithOrganization = item.IsSharedWithOrganization;
+            existingItem.Quantity = item.Quantity;
+            
+        }
 
         await db.SaveChangesAsync();
-
         return existingItem;
+        
+
+        
     }
 
     public static async Task<bool> DeleteStarItem(ItemCacheDb db, int id, string username)

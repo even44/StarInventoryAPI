@@ -97,7 +97,7 @@ public static class PersonalEndpoints
             });
 
 
-            personalApi.MapGet("/roles", async (HttpContext httpContext) =>
+            personalApi.MapGet("/roles", (HttpContext httpContext) =>
             {
                 
                 return new RoleListResponse
