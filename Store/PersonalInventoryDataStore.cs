@@ -1,15 +1,12 @@
+using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 
 public static class PersonalInventoryDataStore
 {
-        public static async Task<StarItem?> AddStarItem(ItemCacheDb db, StarItem item, string username)
+    public static async Task<StarItem?> AddStarItem(ItemCacheDb db, StarItem item, string username)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Username == username);
-        if (user == null)
-        {
-            db.Users.Add(new User{Username = username});
-            Console.WriteLine($"User does not exist when creating item, adding user");
-        }
+        await UserDataStore.ensureUserExists(db, username);
+
         item.Username = username;
 
 
@@ -38,6 +35,7 @@ public static class PersonalInventoryDataStore
 
     public static async Task<StarItem> UpdateStarItem(ItemCacheDb db, int id, StarItem item, string username)
     {
+        await UserDataStore.ensureUserExists(db, username);
         item.Id = id;
         StarItem? existingItem = await db.PersonalItems.FindAsync(id);
         if (existingItem == null)
@@ -94,6 +92,7 @@ public static class PersonalInventoryDataStore
 
     public static async Task<bool> DeleteStarItem(ItemCacheDb db, int id, string username)
     {
+        await UserDataStore.ensureUserExists(db, username);
         StarItem? existingItem = await db.PersonalItems.FindAsync(id);
         if (existingItem != null)
         {
@@ -112,13 +111,18 @@ public static class PersonalInventoryDataStore
 
     public static async Task<List<StarItem>> GetPersonalItems(ItemCacheDb db, string username)
     {
+        await UserDataStore.ensureUserExists(db, username);
         List<StarItem> items = await db.PersonalItems.Where(user => user.Username.Equals(username)).ToListAsync();
         return items;
     }
 
     public static async Task<List<StarItem>> SearchPersonalItems(ItemCacheDb db, string username, string searchTerm)
     {
+        await UserDataStore.ensureUserExists(db, username);
         List<StarItem> items = await db.PersonalItems.Where(item => item.Name.ToLower().Contains(searchTerm.ToLower()) && item.Username == username).Take(10).ToListAsync();
         return items;
     }
+
+
+    
 }

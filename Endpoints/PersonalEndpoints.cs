@@ -97,16 +97,6 @@ public static class PersonalEndpoints
             });
 
 
-            personalApi.MapGet("/roles", (HttpContext httpContext) =>
-            {
-                
-                return new RoleListResponse
-                {
-                    User = httpContext.User.IsInRole("User"),
-                    Org = httpContext.User.IsInRole("Org"),
-                    Admin = httpContext.User.IsInRole("Admin"),
-                    Dev = httpContext.User.IsInRole("Dev")
-                };
-            });
+
     }
 }

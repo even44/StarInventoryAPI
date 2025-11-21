@@ -14,9 +14,9 @@ public static class UserDataStore
         return await db.Users.FindAsync(username);
     }
 
-    public static async Task<bool> CreateUser(UserLogin newUserLogin, int roleId, ItemCacheDb db, PasswordHasher passwordHasher)
+    public static async Task<bool> CreateUser(string username, ItemCacheDb db)
     {
-        User? existingUser = await db.Users.FindAsync(newUserLogin.Username);
+        User? existingUser = await db.Users.FindAsync(username);
         if (existingUser != null)
         {
             return false;
@@ -24,11 +24,20 @@ public static class UserDataStore
 
         User newUser = new User();
 
-        newUser.Username = newUserLogin.Username;
+        newUser.Username = username;
 
         db.Users.Add(newUser);
         await db.SaveChangesAsync();
 
+        return true;
+    }
+
+    public static async Task<bool> ensureUserExists(ItemCacheDb db, string username)
+    {
+        if (null == await UserDataStore.GetUser(username, db))
+        {
+            await UserDataStore.CreateUser(username, db);
+        }
         return true;
     }
 
