@@ -389,7 +389,7 @@ public class UexItem
     [JsonPropertyName("id_vehicle")]
     public int? vehicleId { get; set; }
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
     [JsonPropertyName("section")]
     public string? Section { get; set; }
     [JsonPropertyName("category")]
@@ -399,7 +399,7 @@ public class UexItem
     [JsonPropertyName("vehicle_name")]
     public string? VehicleName { get; set; }
     [JsonPropertyName("slug")]
-    public string Slug { get; set; }
+    public required string Slug { get; set; }
     [JsonPropertyName("size")]
     public string? Size { get; set; }
     [JsonPropertyName("uuid")]
@@ -441,11 +441,11 @@ public class UexCategory
     [JsonPropertyName("id")]
     public int Id { get; set; }
     [JsonPropertyName("type")]
-    public string Type { get; set; }
+    public required string Type { get; set; }
     [JsonPropertyName("section")]
-    public string Section { get; set; }
+    public required string Section { get; set; }
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
     [JsonPropertyName("is_game_related")]
     public int IsGameRelated { get; set; }
     [JsonPropertyName("is_mining")]
@@ -527,9 +527,9 @@ public class UexPoi
     [JsonPropertyName("id_jurisdiction")]
     public int JurisdictionId { get; set; }
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
     [JsonPropertyName("nickname")]
-    public string Nickname { get; set; }
+    public required string Nickname { get; set; }
     [JsonPropertyName("is_available")]
     public int IsAvailable { get; set; }
     [JsonPropertyName("is_available_live")]
@@ -666,9 +666,9 @@ public class UexSpaceStation
     [JsonPropertyName("id_jurisdiction")]
     public int JurisdictionId { get; set; }
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
     [JsonPropertyName("nickname")]
-    public string Nickname { get; set; }
+    public required string Nickname { get; set; }
     [JsonPropertyName("is_available")]
     public int IsAvailable { get; set; }
     [JsonPropertyName("is_available_live")]
@@ -741,44 +741,44 @@ public class UexSpaceStation
 public class UexSpaceStationResponse
 {
     [JsonPropertyName("status")]
-    public string Status { get; set; }
+    public required string Status { get; set; }
     [JsonPropertyName("http_code")]
     public int HttpCode { get; set; }
     [JsonPropertyName("data")]
-    public List<UexSpaceStation> Data { get; set; }
+    public required List<UexSpaceStation> Data { get; set; }
     [JsonPropertyName("message")]
-    public string Message { get; set; }
+    public required string Message { get; set; }
 }
 public class UexCategoryResponse
 {
     [JsonPropertyName("status")]
-    public string Status { get; set; }
+    public required string Status { get; set; }
     [JsonPropertyName("http_code")]
     public int HttpCode { get; set; }
     [JsonPropertyName("data")]
-    public List<UexCategory> Data { get; set; }
+    public required List<UexCategory> Data { get; set; }
     [JsonPropertyName("message")]
-    public string Message { get; set; }
+    public required string Message { get; set; }
 }
 public class UexLocationsResponse
 {
     [JsonPropertyName("status")]
-    public string Status { get; set; }
+    public required string Status { get; set; }
     [JsonPropertyName("http_code")]
     public int HttpCode { get; set; }
     [JsonPropertyName("data")]
-    public List<UexPoi> Data { get; set; }
+    public required List<UexPoi> Data { get; set; }
     [JsonPropertyName("message")]
-    public string Message { get; set; }
+    public required string Message { get; set; }
 }
 public class UexItemsResponse
 {
     [JsonPropertyName("status")]
-    public string Status { get; set; }
+    public required string Status { get; set; }
     [JsonPropertyName("http_code")]
     public int HttpCode { get; set; }
     [JsonPropertyName("data")]
-    public List<UexItem> Data { get; set; }
+    public required List<UexItem> Data { get; set; }
     [JsonPropertyName("message")]
-    public string Message { get; set; }
+    public required string Message { get; set; }
 }

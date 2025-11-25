@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace StarInventoryAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class newinit : Migration
+    public partial class newInit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -5,5 +5,5 @@ using Microsoft.EntityFrameworkCore;
 public class OrgInventoryUser
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public string Username { get; set; }
+    public required string Username { get; set; }
 }

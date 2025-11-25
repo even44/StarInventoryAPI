@@ -79,8 +79,6 @@ builder.Services.AddHttpClient("UexApi", client =>
 
 // Adding custom services for dependency injection
 
-builder.Services.AddSingleton<PasswordHasher>();
-
 var app = builder.Build();
 
 

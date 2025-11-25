@@ -47,29 +47,5 @@ public static class DevEndpoints
             return TypedResults.Ok();
         });
 
-
-        devApi.MapGet("/randomitem", async Task<Results<Created<StarItem>, UnauthorizedHttpResult, InternalServerError<string>>> (ItemCacheDb db, HttpContext httpContext) =>
-        {
-            string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
-            if (username == null)
-            {
-                return TypedResults.Unauthorized();
-            }
-
-            StarItem item = StarItem.RandomItem(db, username);
-
-            StarItem? resultItem = await PersonalInventoryDataStore.AddStarItem(db, item, username);
-
-            if (resultItem == null)
-            {
-                return TypedResults.InternalServerError("Failed to add random item");
-            }
-
-            return TypedResults.Created($"/personal/items/{resultItem.Id}", resultItem);
-
-        });
-
-
-
     }
 }

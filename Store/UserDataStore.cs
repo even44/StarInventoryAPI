@@ -22,9 +22,10 @@ public static class UserDataStore
             return false;
         }
 
-        User newUser = new User();
-
-        newUser.Username = username;
+        User newUser = new User
+        {
+            Username = username
+        };
 
         db.Users.Add(newUser);
         await db.SaveChangesAsync();

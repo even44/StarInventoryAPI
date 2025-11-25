@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StarInventoryAPI.Migrations
 {
     [DbContext(typeof(ItemCacheDb))]
-    [Migration("20251119095546_newinit")]
-    partial class newinit
+    [Migration("20251125082921_newInit")]
+    partial class newInit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

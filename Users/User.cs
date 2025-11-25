@@ -4,5 +4,5 @@ using Microsoft.EntityFrameworkCore;
 [PrimaryKey(nameof(Username))]
 public class User
 {
-    public string Username { get; set; }
+    public required string Username { get; set; }
 }

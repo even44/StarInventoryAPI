@@ -1,4 +1,4 @@
 public class OrgInventory
 {
-    public List<StarItem> Items { get; set; }
+    public required List<StarItem> Items { get; set; }
 }
