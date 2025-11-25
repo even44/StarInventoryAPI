@@ -399,7 +399,22 @@ public class ItemCacheDb : DbContext
         
         return true;
     }
-}
 
+
+    public async Task<CacheUpdateResponse> GetCacheUpdateResponse(ItemCacheDb db)
+    {
+        var totalPois = await db.UexPois.CountAsync();
+        var totalStations = await db.UexSpaceStations.CountAsync();
+        var totalCities = await db.UexCities.CountAsync();
+
+        return new CacheUpdateResponse
+        {
+            TotalPois = totalPois,
+            TotalStations = totalStations,
+            TotalCities = totalCities,
+            Total = totalPois + totalCities + totalStations
+        };
+    }
+}
 
 

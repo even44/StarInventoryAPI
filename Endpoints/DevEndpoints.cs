@@ -9,7 +9,7 @@ public static class DevEndpoints
             .RequireAuthorization("dev");
 
         // Update the Cache from UEX and compile a list of locations
-        devApi.MapGet("/updateCache", async Task<Results<Ok, InternalServerError>> (ItemCacheDb db, IHttpClientFactory httpClientFactory) =>
+        devApi.MapGet("/updateCache", async Task<Results<Ok<CacheUpdateResponse>, InternalServerError>> (ItemCacheDb db, IHttpClientFactory httpClientFactory) =>
         {
             var client = httpClientFactory.CreateClient("UexApi");
 
@@ -31,12 +31,13 @@ public static class DevEndpoints
                 Console.WriteLine("Failed to update space stations");
                 return TypedResults.InternalServerError();
             }
-            bool cityResult = await db.UpdateSpaceStations(db, client);
+            bool cityResult = await db.UpdateCities(db, client);
             if (!cityResult)
             {
                 Console.WriteLine("Failed to update cities");
                 return TypedResults.InternalServerError();
             }
+            
             bool locationMergeResult = await db.CompileLocations(db);
             if (!locationMergeResult)
             {
@@ -50,7 +51,7 @@ public static class DevEndpoints
                 Console.WriteLine("Failed to update items");
                 return TypedResults.InternalServerError();
             }
-            return TypedResults.Ok();
+            return TypedResults.Ok(await db.GetCacheUpdateResponse(db));
         });
 
     }
