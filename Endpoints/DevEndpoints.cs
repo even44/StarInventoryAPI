@@ -31,6 +31,12 @@ public static class DevEndpoints
                 Console.WriteLine("Failed to update space stations");
                 return TypedResults.InternalServerError();
             }
+            bool cityResult = await db.UpdateSpaceStations(db, client);
+            if (!cityResult)
+            {
+                Console.WriteLine("Failed to update cities");
+                return TypedResults.InternalServerError();
+            }
             bool locationMergeResult = await db.CompileLocations(db);
             if (!locationMergeResult)
             {
