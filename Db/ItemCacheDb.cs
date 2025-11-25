@@ -327,7 +327,7 @@ public class ItemCacheDb : DbContext
             Console.WriteLine($"Location count mismatch! {db.StarLocations.Count()} != {totalPois} + {totalStations} + {totalCities} i={i}");
             return false;
         }
-
+        Console.WriteLine($"Compiled {totalPois} + {totalStations} + {totalCities} = {totalPois+totalStations+totalCities} locations");
         return true;
     }
 

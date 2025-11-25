@@ -19,8 +19,8 @@ public static class DevEndpoints
                 Console.WriteLine("Failed to update categories");
                 return TypedResults.InternalServerError();
             }
-            bool locResult = await db.UpdatePois(db, client);
-            if (!locResult)
+            bool poiResult = await db.UpdatePois(db, client);
+            if (!poiResult)
             {
                 Console.WriteLine("Failed to update pois");
                 return TypedResults.InternalServerError();
