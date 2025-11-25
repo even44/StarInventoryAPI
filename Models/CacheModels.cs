@@ -384,9 +384,103 @@ public class UexSpaceStation
     public string? FactionName { get; set; }
     [JsonPropertyName("jurisdiction_name")]
     public string? JurisdictionName { get; set; }
-
-    
+   
 }
+
+public class UexCity
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+    [JsonPropertyName("id_star_system")]
+    public int StarSystemId { get; set; }
+    [JsonPropertyName("id_planet")]
+    public int PlanetId { get; set; }
+    [JsonPropertyName("id_orbit")]
+    public int OrbitId { get; set; }
+    [JsonPropertyName("id_moon")]
+    public int MoonId { get; set; }
+    [JsonPropertyName("id_faction")]
+    public int FactionId { get; set; }
+    [JsonPropertyName("id_jurisdiction")]
+    public int JurisdictionId { get; set; }
+    [JsonPropertyName("name")]
+    public required string Name { get; set; }
+    [JsonPropertyName("code")]
+    public required string Code { get; set; }
+    [JsonPropertyName("is_available")]
+    public int IsAvailable { get; set; }
+    [JsonPropertyName("is_available_live")]
+    public int IsAvailableLive { get; set; }
+    [JsonPropertyName("is_visible")]
+    public int IsVisible { get; set; }
+    [JsonPropertyName("is_default")]
+    public int IsDefault { get; set; }
+    [JsonPropertyName("is_monitored")]
+    public int IsMonitored { get; set; }
+    [JsonPropertyName("is_armistice")]
+    public int IsArmistice { get; set; }
+    [JsonPropertyName("is_landable")]
+    public int IsLandable { get; set; }
+    [JsonPropertyName("is_decommissioned")]
+    public int IsDecommissioned { get; set; }
+    [JsonPropertyName("has_quantum_marker")]
+    public int HasQuantumMarker { get; set; }
+    [JsonPropertyName("has_trade_terminal")]
+    public int HasTradeTerminal { get; set; }
+    [JsonPropertyName("has_habitation")]
+    public int HasHabitation { get; set; }
+    [JsonPropertyName("has_refinery")]
+    public int HasRefinery { get; set; }
+    [JsonPropertyName("has_cargo_center")]
+    public int HasCargoCenter { get; set; }
+    [JsonPropertyName("has_clinic")]
+    public int HasClinic { get; set; }
+    [JsonPropertyName("has_food")]
+    public int HasFood { get; set; }
+    [JsonPropertyName("has_shops")]
+    public int HasShops { get; set; }
+    [JsonPropertyName("has_refuel")]
+    public int HasRefuel { get; set; }
+    [JsonPropertyName("has_repair")]
+    public int HasRepair { get; set; }
+    [JsonPropertyName("has_gravity")]
+    public int HasGravity { get; set; }
+    [JsonPropertyName("has_loading_dock")]
+    public int HasLoadingDock { get; set; }
+    [JsonPropertyName("has_docking_port")]
+    public int HasDockingPort { get; set; }
+    [JsonPropertyName("has_freight_elevator")]
+    public int HasFreightElevator { get; set; }
+    [JsonPropertyName("pad_types")]
+    public string? PadTypes { get; set; }
+    [JsonPropertyName("date_added")]
+    public int DateAdded { get; set; }
+    [JsonPropertyName("date_modified")]
+    public int DateModified { get; set; }
+    [JsonPropertyName("star_system_name")]
+    public string? StarSystemName { get; set; }
+    [JsonPropertyName("planet_name")]
+    public string? PlanetName { get; set; }
+    [JsonPropertyName("orbit_name")]
+    public string? OrbitName { get; set; }
+    [JsonPropertyName("city_name")]
+    public string? FactionName { get; set; }
+    [JsonPropertyName("jurisdiction_name")]
+    public string? JurisdictionName { get; set; }
+}
+
+public class UexCityResponse
+{
+    [JsonPropertyName("status")]
+    public required string Status { get; set; }
+    [JsonPropertyName("http_code")]
+    public int HttpCode { get; set; }
+    [JsonPropertyName("data")]
+    public required List<UexCity> Data { get; set; }
+    [JsonPropertyName("message")]
+    public required string Message { get; set; }
+}
+
 public class UexSpaceStationResponse
 {
     [JsonPropertyName("status")]

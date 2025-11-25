@@ -11,6 +11,7 @@ public class ItemCacheDb : DbContext
     public DbSet<UexCategory> UexCategories => Set<UexCategory>();
     public DbSet<UexItem> UexItems => Set<UexItem>();
     public DbSet<UexPoi> UexPois => Set<UexPoi>();
+    public DbSet<UexCity> UexCities => Set<UexCity>();
     public DbSet<UexSpaceStation> UexSpaceStations => Set<UexSpaceStation>();
     public DbSet<User> Users => Set<User>();
     public DbSet<OrgInventoryUser> OrgInventoryUsers => Set<OrgInventoryUser>();
@@ -216,6 +217,34 @@ public class ItemCacheDb : DbContext
         return false;
     }
 
+    public async Task<bool> UpdateCities(ItemCacheDb db, HttpClient client)
+    {
+        var responseTask = await client.GetAsync("https://api.uexcorp.uk/2.0/cities");
+        var response = responseTask;
+        if (response.IsSuccessStatusCode)
+        {
+            var citiesResponse = await response.Content.ReadFromJsonAsync<UexCityResponse>();
+            if (citiesResponse != null)
+            {
+                foreach (UexCity city in citiesResponse.Data)
+                {
+                    var existingCity = await db.UexCities.FindAsync(city.Id);
+                    if (existingCity == null)
+                    {
+                        db.UexCities.Add(city);
+                    }
+                    else
+                    {
+                        existingCity = city;
+                    }
+                    await SaveChangesAsync();
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public async Task<bool> CompileLocations(ItemCacheDb db)
     {
         // Get total count of Pois
@@ -227,6 +256,11 @@ public class ItemCacheDb : DbContext
         int totalStations = await db.UexSpaceStations.CountAsync();
         // Get all Space Stations
         List<UexSpaceStation> stations = await db.UexSpaceStations.ToListAsync();
+
+        // Get total count of Space Stations
+        int totalCities = await db.UexCities.CountAsync();
+        // Get all Space Stations
+        List<UexCity> cities = await db.UexCities.ToListAsync();
         int i = 0;
 
         foreach (UexPoi poi in pois)
@@ -266,12 +300,31 @@ public class ItemCacheDb : DbContext
             }
             i++;
         }
+
+        foreach (UexCity city in cities)
+        {
+            StarLocation? existingLocation = await db.StarLocations.FindAsync(i);
+            if (existingLocation == null)
+            {
+                StarLocation newLocation = new StarLocation
+                {
+                    Id = i,
+                    Name = city.Name,
+                };
+                db.StarLocations.Add(newLocation);
+            }
+            else
+            {
+                existingLocation.Name = city.Name;
+            }
+            i++;
+        }
         await SaveChangesAsync();
 
 
-        if (db.StarLocations.Count() != (totalPois + totalStations))
+        if (db.StarLocations.Count() != (totalPois + totalStations + totalCities))
         {
-            Console.WriteLine($"Location count mismatch! {db.StarLocations.Count()} != {totalPois} + {totalStations} i={i}");
+            Console.WriteLine($"Location count mismatch! {db.StarLocations.Count()} != {totalPois} + {totalStations} + {totalCities} i={i}");
             return false;
         }
 
