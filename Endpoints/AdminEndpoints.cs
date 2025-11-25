@@ -13,7 +13,7 @@ public static class AdminEndpoints
         .WithTags("Administration")
         .RequireAuthorization("admin");
 
-        adminApi.MapGet("/resetdb", async (ItemCacheDb db) =>
+        adminApi.MapGet("/resetdb", async Task<Ok<string>> (ItemCacheDb db) =>
         {
             var itemlist = await db.PersonalItems.ToListAsync();
             var locationlist = await db.StarLocations.ToListAsync();
@@ -23,14 +23,14 @@ public static class AdminEndpoints
 
             await db.SaveChangesAsync();
 
-            return Results.Ok("Database Cleared");
+            return TypedResults.Ok("Database Cleared");
         });
 
-        adminApi.MapGet("/users", async (ItemCacheDb db) =>
+        adminApi.MapGet("/users", async Task<Ok<List<User>>> (ItemCacheDb db) =>
         {
             var userList = await UserDataStore.GetUsers(db);
 
-            return Results.Ok(userList);
+            return TypedResults.Ok(userList);
         });
 
     }
