@@ -13,25 +13,9 @@ public static class AdminEndpoints
         .WithTags("Administration")
         .RequireAuthorization("admin");
 
-        adminApi.MapGet("/resetdb", async Task<Ok<string>> (ItemCacheDb db) =>
-        {
-            var itemlist = await db.PersonalItems.ToListAsync();
-            var locationlist = await db.StarLocations.ToListAsync();
+        adminApi.MapDelete("/wipePersonalItems", AdminHandlers.WipeAllUsersPersonalItems);
 
-            db.PersonalItems.RemoveRange(itemlist);
-            db.StarLocations.RemoveRange(locationlist);
-
-            await db.SaveChangesAsync();
-
-            return TypedResults.Ok("Database Cleared");
-        });
-
-        adminApi.MapGet("/users", async Task<Ok<List<User>>> (ItemCacheDb db) =>
-        {
-            var userList = await UserDataStore.GetUsers(db);
-
-            return TypedResults.Ok(userList);
-        });
+        adminApi.MapGet("/users", AdminHandlers.GetUsersList);
 
     }
 }

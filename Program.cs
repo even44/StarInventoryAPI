@@ -47,7 +47,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         o.RequireHttpsMetadata = false;
         o.TokenValidationParameters = new TokenValidationParameters
-        
+
         {
             IssuerSigningKey = signingKey,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
@@ -102,15 +102,15 @@ if (app.Environment.IsDevelopment())
 
     app.UseStatusCodePages(statusCodeHandlerApp =>
     {
-    statusCodeHandlerApp.Run(async httpContext =>
-    {
-        var pds = httpContext.RequestServices.GetService<IProblemDetailsService>();
-        if (pds == null
-            || !await pds.TryWriteAsync(new() { HttpContext = httpContext }))
+        statusCodeHandlerApp.Run(async httpContext =>
         {
-            await httpContext.Response.WriteAsync("Fallback: An error occurred.");
-        }
-    });
+            var pds = httpContext.RequestServices.GetService<IProblemDetailsService>();
+            if (pds == null
+                || !await pds.TryWriteAsync(new() { HttpContext = httpContext }))
+            {
+                await httpContext.Response.WriteAsync("Fallback: An error occurred.");
+            }
+        });
     });
 }
 
