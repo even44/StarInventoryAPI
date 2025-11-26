@@ -120,6 +120,7 @@ app.MapCacheEndpoints();
 app.MapOrgEndpoints();
 app.MapDevEndpoints();
 app.MapPersonalEndpoints();
+app.MapRecipeEndpoints();
 
 
 

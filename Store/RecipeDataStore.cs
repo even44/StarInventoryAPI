@@ -18,6 +18,7 @@ public static class RecipeDataStore
         }
 
         db.Recepies.Add(recipe);
+        await db.SaveChangesAsync();
 
         return true;
     }
@@ -29,6 +30,8 @@ public static class RecipeDataStore
         if (existingRecipe == null) return false;
 
         db.Recepies.Remove(existingRecipe);
+
+        await db.SaveChangesAsync();
         
         return true;
     }
