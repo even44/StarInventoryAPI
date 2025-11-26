@@ -2,11 +2,10 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 class DevHandlers
 {
+
     public static async Task<Results<Ok<CacheUpdateResponse>, InternalServerError>> UpdateCacheFromUex(bool updateItems, bool updateLocations, ItemCacheDb db, IHttpClientFactory httpClientFactory)
     {
         var client = httpClientFactory.CreateClient("UexApi");
-
-
 
         if (updateItems)
         {

@@ -1,18 +1,18 @@
-
-using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+// Configuration for swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGenWithAuth();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // Configure cors policies for the app
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
@@ -23,11 +23,6 @@ builder.Services.AddCors(options =>
             policy.WithHeaders("Content-Type", "Authorization", "Accept");
         });
 });
-
-// Configuration for swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGenWithAuth();
-
 
 // Build the different policies and defining requred claims for authorization
 builder.Services.AddAuthorizationBuilder()
@@ -75,14 +70,9 @@ builder.Services.AddHttpClient("UexApi", client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
-
-
 // Adding custom services for dependency injection
-
 var app = builder.Build();
-
-
-
+app.Logger.LogInformation("Enableing Middleware");
 
 // Enable CORS Policies and Auth
 app.UseCors(MyAllowSpecificOrigins);
@@ -93,6 +83,7 @@ app.UseAuthorization();
 // Enable swagger if in dev mode
 if (app.Environment.IsDevelopment())
 {
+    app.Logger.LogInformation("Enabeling Swagger");
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
@@ -100,6 +91,7 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = string.Empty;
     });
 
+    app.Logger.LogInformation("Enabeling Status Code Pages");
     app.UseStatusCodePages(statusCodeHandlerApp =>
     {
         statusCodeHandlerApp.Run(async httpContext =>
@@ -114,6 +106,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.Logger.LogInformation("Mapping Endpoints");
 // Mapping endpoints for the api
 app.MapAdminEndpoints();
 app.MapCacheEndpoints();
@@ -123,6 +116,6 @@ app.MapPersonalEndpoints();
 app.MapRecipeEndpoints();
 
 
-
+app.Logger.LogInformation("Starting App");
 app.Run();
 // This is a comment
