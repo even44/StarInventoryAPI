@@ -6,36 +6,13 @@ public static class RecipeEndpoints
     {
         var recipeApi = app.MapGroup("/recipe").WithTags("Recipes").RequireAuthorization("user");
         
-        recipeApi.MapGet("/", async Task<Ok<List<Recipe>>> (ItemCacheDb db) =>
-        {
-            List<Recipe> recipes = await RecipeDataStore.ListRecepies(db);
-            return TypedResults.Ok(recipes);
-        });
+        recipeApi.MapGet("/", RecipeHandlers.GetAllRecipesList);
 
-        recipeApi.MapPost("/", async Task<Results<Created, BadRequest>> (Recipe recipe, ItemCacheDb db) =>
-        {
-            bool result = await RecipeDataStore.AddRecipe(db, recipe);
-            if (!result) return TypedResults.BadRequest();
+        recipeApi.MapPost("/", RecipeHandlers.AddRecipe).RequireAuthorization("organization");
 
-            return TypedResults.Created();
-            
-        }).RequireAuthorization("organization");
+        recipeApi.MapDelete("/{id}", RecipeHandlers.RemoveRecipe).RequireAuthorization("organization");
 
-        recipeApi.MapDelete("/{id}", async Task<Results<Ok, NotFound>> (ItemCacheDb db, int id) =>
-        {
-            bool result = await RecipeDataStore.RemoveRecipe(db, id);
-            if (!result) return TypedResults.NotFound();
-
-            return TypedResults.Ok();
-        }).RequireAuthorization("organization");
-
-        recipeApi.MapPut("/{id}", async Task<Results<Ok, NotFound>> (ItemCacheDb db, Recipe recipe, int id) =>
-        {
-            bool result = await RecipeDataStore.UpdateRecipe(db, recipe, id);
-            if (!result) return TypedResults.NotFound();
-
-            return TypedResults.Ok();
-        }).RequireAuthorization("organization");
+        recipeApi.MapPut("/{id}", RecipeHandlers.EditRecipe).RequireAuthorization("organization");
     }
 
 }
