@@ -15,7 +15,7 @@ public class ItemCacheDb : DbContext
     public DbSet<UexSpaceStation> UexSpaceStations => Set<UexSpaceStation>();
     public DbSet<User> Users => Set<User>();
     public DbSet<OrgInventoryUser> OrgInventoryUsers => Set<OrgInventoryUser>();
-    public DbSet<Recipe> Recepies => Set<Recipe>();
+    public DbSet<Recipe> Recipes => Set<Recipe>();
 
  
 
