@@ -404,16 +404,18 @@ public class ItemCacheDb : DbContext
 
     public async Task<CacheUpdateResponse> GetCacheUpdateResponse(ItemCacheDb db)
     {
+        var totalItems = await db.UexItems.CountAsync();
         var totalPois = await db.UexPois.CountAsync();
         var totalStations = await db.UexSpaceStations.CountAsync();
         var totalCities = await db.UexCities.CountAsync();
 
         return new CacheUpdateResponse
         {
+            TotalItems = totalItems,
             TotalPois = totalPois,
             TotalStations = totalStations,
             TotalCities = totalCities,
-            Total = totalPois + totalCities + totalStations
+            Total = totalItems + totalPois + totalCities + totalStations
         };
     }
 }
