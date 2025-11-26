@@ -19,7 +19,7 @@ public static class RecipeEndpoints
 
             return TypedResults.Created();
             
-        });
+        }).RequireAuthorization("org");
 
         recipeApi.MapDelete("/{id}", async Task<Results<Ok, NotFound>> (ItemCacheDb db, int id) =>
         {
@@ -27,7 +27,7 @@ public static class RecipeEndpoints
             if (!result) return TypedResults.NotFound();
 
             return TypedResults.Ok();
-        });
+        }).RequireAuthorization("org");
 
         recipeApi.MapPut("/{id}", async Task<Results<Ok, NotFound>> (ItemCacheDb db, Recipe recipe, int id) =>
         {
@@ -35,7 +35,7 @@ public static class RecipeEndpoints
             if (!result) return TypedResults.NotFound();
 
             return TypedResults.Ok();
-        });
+        }).RequireAuthorization("org");
     }
 
 }
