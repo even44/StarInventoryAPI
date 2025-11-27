@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http.HttpResults;
-
 public static class DevEndpoints
 {
     public static void MapDevEndpoints(this IEndpointRouteBuilder app)
@@ -10,6 +8,6 @@ public static class DevEndpoints
 
         // Update the Cache from UEX and compile a list of locations
         devApi.MapGet("/updateCache", DevHandlers.UpdateCacheFromUex);
-        
+
     }
 }
