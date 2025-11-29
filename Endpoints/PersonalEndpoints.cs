@@ -1,6 +1,3 @@
-
-using Microsoft.AspNetCore.Http.HttpResults;
-
 public static class PersonalEndpoints
 {
     public static void MapPersonalEndpoints(this IEndpointRouteBuilder app)
