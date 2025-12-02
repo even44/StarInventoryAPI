@@ -238,9 +238,9 @@ public class ItemCacheDb : DbContext
                     {
                         existingCity = city;
                     }
-                    await SaveChangesAsync();
-                    return true;
                 }
+                await SaveChangesAsync();
+                return true;
             }
         }
         return false;
