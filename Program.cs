@@ -11,6 +11,8 @@ builder.Services.AddSwaggerGenWithAuth();
 builder.Services.AddProblemDetails();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+builder.Services.AddHealthChecks();
+
 // Configure cors policies for the app
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
@@ -107,6 +109,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.Logger.LogInformation("Mapping Endpoints");
+
+app.MapHealthChecks("/health");
 // Mapping endpoints for the api
 app.MapAdminEndpoints();
 app.MapCacheEndpoints();
