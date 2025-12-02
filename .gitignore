@@ -1,5 +1,4 @@
 obj/
 bin/
 appsettings.Development.json
-StarInventoryAPI.sln
 docker-compose/.env
