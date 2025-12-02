@@ -238,9 +238,10 @@ public class ItemCacheDb : DbContext
                     {
                         existingCity = city;
                     }
-                    await SaveChangesAsync();
-                    return true;
+                    
                 }
+                await SaveChangesAsync();
+                return true;
             }
         }
         return false;
@@ -352,7 +353,7 @@ public class ItemCacheDb : DbContext
                     if (itemsResponse.Data == null) continue;
                     foreach (UexItem item in itemsResponse.Data)
                     {
-                        item.Name = FixQuotes(item.Name);
+                        item.Name = FixWierdHTMLThing(item.Name);
                         Console.WriteLine($"Processing Item: {item.Id} {item.Name}");
                         var existingItem = await db.UexItems.FindAsync(item.Id);
                         if (existingItem == null)
@@ -423,7 +424,27 @@ public class ItemCacheDb : DbContext
 
     public static string FixQuotes(string dirtyName)
     {
-        var name = dirtyName.Replace("&amp;", "\"");
+        var name = dirtyName.Replace("&quot;", "\"");
+        return name;
+    }
+
+    public static string FixApos(string dirtyName)
+    {
+        var name = dirtyName.Replace("&apos;", "\'");
+        return name;
+    }
+
+    public static string FixAmp(string dirtyName)
+    {
+        var name = dirtyName.Replace("&amp;", String.Empty);
+        return name;
+    }
+
+    public static string FixWierdHTMLThing(string dirtyName)
+    {
+        var name = FixApos(dirtyName);
+        name = FixQuotes(name);
+        name = FixAmp(name);
         return name;
     }
 }
