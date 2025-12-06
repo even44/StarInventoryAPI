@@ -72,8 +72,18 @@ builder.Services.AddHttpClient("UexApi", client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
+
+
 // Adding custom services for dependency injection
 var app = builder.Build();
+
+app.CheckDatabaseConnection();
+app.MigrateDatabase();
+
+
+
+app.Logger.LogInformation("Database connection verified");
+
 app.Logger.LogInformation("Enableing Middleware");
 
 // Enable CORS Policies and Auth
