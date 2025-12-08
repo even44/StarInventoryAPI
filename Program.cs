@@ -11,7 +11,7 @@ builder.Services.AddSwaggerGenWithAuth();
 builder.Services.AddProblemDetails();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddHealthChecks();
+
 
 // Configure cors policies for the app
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -62,7 +62,8 @@ builder.Services.AddDbContext<ItemCacheDb>(
     .EnableSensitiveDataLogging()
     .EnableDetailedErrors()
 );
-
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ItemCacheDb>();
 
 
 // Add HttpClient for DI for use with Uex API
