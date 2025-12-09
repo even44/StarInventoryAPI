@@ -352,7 +352,7 @@ public class ItemCacheDb : DbContext
                     if (itemsResponse.Data == null) continue;
                     foreach (UexItem item in itemsResponse.Data)
                     {
-                        item.Name = FixQuotes(item.Name);
+                        item.Name = RemoveHTMLAritfactsFromString(item.Name);
                         Console.WriteLine($"Processing Item: {item.Id} {item.Name}");
                         var existingItem = await db.UexItems.FindAsync(item.Id);
                         if (existingItem == null)
@@ -423,7 +423,25 @@ public class ItemCacheDb : DbContext
 
     public static string FixQuotes(string dirtyName)
     {
-        var name = dirtyName.Replace("&amp;", "\"");
+        var name = dirtyName.Replace("&qupt;", "\"");
+        return name;
+    }
+    public static string FixAmp(string dirtyName)
+    {
+        var name = dirtyName.Replace("&amp;", String.Empty);
+        return name;
+    }
+    public static string FixApos(string dirtyName)
+    {
+        var name = dirtyName.Replace("&apos;", "\'");
+        return name;
+    }
+
+    public string RemoveHTMLAritfactsFromString(string dirtyName)
+    {
+        var name = FixQuotes(dirtyName);
+        name = FixAmp(name);
+        name = FixApos(name);
         return name;
     }
 }
