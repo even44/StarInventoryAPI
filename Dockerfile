@@ -14,10 +14,8 @@ WORKDIR /App
 RUN apt-get update 
 RUN apt-get install -y curl
 COPY --from=build /App/out .
-ENV ConnectionStrings__MariaDbConnection=""
-ENV Jwt__Key=""
-ENV Jwt__Issuer="StarInventoryAPI"
-ENV Jwt__Audience="account"
-ENV Jwt__ExpirationInMinutes=5
+ENV ConnectionStrings__MariaDbConnection="databaseconnectionstring"
+ENV Jwt__Issuer="urltoissuer"
+ENV Jwt__ClientId="clientid"
 ENTRYPOINT ["dotnet", "StarInventoryAPI.dll"]
 
