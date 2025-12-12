@@ -521,7 +521,7 @@ public class UexItemsResponse
     [JsonPropertyName("http_code")]
     public int HttpCode { get; set; }
     [JsonPropertyName("data")]
-    public required List<UexItem> Data { get; set; }
+    public List<UexItem>? Data { get; set; }
     [JsonPropertyName("message")]
     public required string Message { get; set; }
 }
