@@ -83,7 +83,7 @@ jobs:
           cd gitops/talos-proxmox-cluster/kustomize/starinventory
           
           # Replace image
-          sed -i "s|image: ghcr.io/${{ github.repository }}:.*|image: ghcr.io/${{ github.repository}}:${{github.sha}}|g" api-deployment.yaml
+          sed -i "s|image: ghcr.io/${{ env.REPO_LC }}:.*|image: ghcr.io/${{ env.REPO_LC}}:${{github.sha}}|g" api-deployment.yaml
           
           # Commit changes
           git config --global user.name "Github Actions - Star Inventory"
