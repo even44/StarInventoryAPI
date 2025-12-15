@@ -54,6 +54,11 @@ jobs:
 #          source $GITHUB_ENV  # Load the updated DOCKER_TAG
 #          docker push ghcr.io/${REPO_NAME}:${DOCKER_TAG}
 
+      - name: set lower case owner name
+        run: |
+          echo "REPO_LC=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository }}'
 
       - name: Build and push docker image
         uses: docker/build-push-action@v4
@@ -61,8 +66,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${REPO_LC}:latest
+            ghcr.io/${REPO_LC}:${{ github.sha }}
       - name: UpdateGitOps repository
         shell: bash
         env:
