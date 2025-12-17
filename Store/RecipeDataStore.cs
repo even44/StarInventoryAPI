@@ -19,7 +19,7 @@ public static class RecipeDataStore
         if (recipe.UexItemIds.Length != recipe.ItemAmounts.Length) return false;
 
         Recipe? existingRecipe = await db.Recipes.FirstOrDefaultAsync(r =>  r.Name == recipe.Name );
-        if (existingRecipe == null) return false;
+        if (existingRecipe != null) return false;
         
         db.Recipes.Add(recipe);
         await db.SaveChangesAsync();
