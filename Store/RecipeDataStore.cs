@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace StarInventoryAPI.Store;
@@ -10,21 +11,21 @@ public static class RecipeDataStore
         return recipes;
     }
 
-    public static async Task<bool> AddRecipe(ItemCacheDb db, Recipe recipe)
+    public static async Task<Results<Created, BadRequest, Conflict>> AddRecipe(ItemCacheDb db, Recipe recipe)
     {
 
         recipe.Id = 0;
-        
-        if (recipe.UexItemIds.Length != recipe.ItemAmounts.Length) return false;
-        if (recipe.UexItemIds.Length != recipe.ItemAmounts.Length) return false;
 
-        Recipe? existingRecipe = await db.Recipes.FirstOrDefaultAsync(r =>  r.Name == recipe.Name );
-        if (existingRecipe != null) return false;
+        if (recipe.UexItemIds.Length == 0 || recipe.UexItemIds.Length != recipe.ItemAmounts.Length) return TypedResults.BadRequest();
+
+        var existingRecipe = await db.Recipes.FirstOrDefaultAsync(r =>  r.Name == recipe.Name );
+        if (existingRecipe != null) return TypedResults.Conflict();
+        
         
         db.Recipes.Add(recipe);
         await db.SaveChangesAsync();
 
-        return true;
+        return TypedResults.Created();
     }
 
     public static async Task<bool> RemoveRecipe(ItemCacheDb db, int id)
