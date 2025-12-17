@@ -4,7 +4,7 @@ namespace StarInventoryAPI.Store;
 
 public static class RecipeDataStore
 {
-    public static async Task<List<Recipe>> ListRecepies(ItemCacheDb db)
+    public static async Task<List<Recipe>> ListRecipes(ItemCacheDb db)
     {
         List<Recipe> recipes = await db.Recipes.ToListAsync();
         return recipes;

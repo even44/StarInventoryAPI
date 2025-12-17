@@ -7,7 +7,7 @@ internal static class RecipeHandlers
 {
     public static async Task<Ok<List<Recipe>>> GetAllRecipesList(ItemCacheDb db)
     {
-        var recipes = await RecipeDataStore.ListRecepies(db);
+        var recipes = await RecipeDataStore.ListRecipes(db);
         return TypedResults.Ok(recipes);
     }
 
