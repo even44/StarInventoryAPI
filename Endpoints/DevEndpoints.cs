@@ -1,3 +1,5 @@
+using StarInventoryAPI.Handlers;
+
 public static class DevEndpoints
 {
     public static void MapDevEndpoints(this IEndpointRouteBuilder app)

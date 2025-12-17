@@ -1,16 +1,19 @@
 using Microsoft.AspNetCore.Http.HttpResults;
+using StarInventoryAPI.Store;
 
-class RecipeHandlers
+namespace StarInventoryAPI.Handlers;
+
+internal static class RecipeHandlers
 {
     public static async Task<Ok<List<Recipe>>> GetAllRecipesList(ItemCacheDb db)
     {
-        List<Recipe> recipes = await RecipeDataStore.ListRecepies(db);
+        var recipes = await RecipeDataStore.ListRecepies(db);
         return TypedResults.Ok(recipes);
     }
 
     public static async Task<Results<Created, BadRequest>> AddRecipe(Recipe recipe, ItemCacheDb db)
     {
-        bool result = await RecipeDataStore.AddRecipe(db, recipe);
+        var result = await RecipeDataStore.AddRecipe(db, recipe);
         if (!result) return TypedResults.BadRequest();
 
         return TypedResults.Created();
@@ -18,7 +21,7 @@ class RecipeHandlers
 
     public static async Task<Results<Ok, NotFound>> RemoveRecipe(ItemCacheDb db, int id)
     {
-        bool result = await RecipeDataStore.RemoveRecipe(db, id);
+        var result = await RecipeDataStore.RemoveRecipe(db, id);
         if (!result) return TypedResults.NotFound();
 
         return TypedResults.Ok();
@@ -26,7 +29,7 @@ class RecipeHandlers
 
     public static async Task<Results<Ok, NotFound>> EditRecipe(ItemCacheDb db, Recipe recipe, int id)
     {
-        bool result = await RecipeDataStore.UpdateRecipe(db, recipe, id);
+        var result = await RecipeDataStore.UpdateRecipe(db, recipe, id);
         if (!result) return TypedResults.NotFound();
 
         return TypedResults.Ok();

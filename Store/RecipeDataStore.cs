@@ -1,22 +1,26 @@
 using Microsoft.EntityFrameworkCore;
 
+namespace StarInventoryAPI.Store;
+
 public static class RecipeDataStore
 {
     public static async Task<List<Recipe>> ListRecepies(ItemCacheDb db)
     {
-        List<Recipe> recepies = await db.Recipes.ToListAsync();
-        return recepies;
+        List<Recipe> recipes = await db.Recipes.ToListAsync();
+        return recipes;
     }
 
     public static async Task<bool> AddRecipe(ItemCacheDb db, Recipe recipe)
     {
 
         recipe.Id = 0;
-        if (recipe.UexItemIds.Length != recipe.ItemAmounts.Length)
-        {
-            return false;
-        }
+        
+        if (recipe.UexItemIds.Length != recipe.ItemAmounts.Length) return false;
+        if (recipe.UexItemIds.Length != recipe.ItemAmounts.Length) return false;
 
+        Recipe? existingRecipe = await db.Recipes.FirstOrDefaultAsync(r =>  r.Name == recipe.Name );
+        if (existingRecipe == null) return false;
+        
         db.Recipes.Add(recipe);
         await db.SaveChangesAsync();
 

@@ -1,3 +1,5 @@
+using StarInventoryAPI.Handlers;
+
 public static class PersonalEndpoints
 {
     public static void MapPersonalEndpoints(this IEndpointRouteBuilder app)
