@@ -11,10 +11,10 @@ internal static class RecipeHandlers
         return TypedResults.Ok(recipes);
     }
 
-    public static async Task<Results<Created, BadRequest>> AddRecipe(Recipe recipe, ItemCacheDb db)
+    public static async Task<Results<Created, Conflict>> AddRecipe(Recipe recipe, ItemCacheDb db)
     {
         var result = await RecipeDataStore.AddRecipe(db, recipe);
-        if (!result) return TypedResults.BadRequest();
+        if (!result) return TypedResults.Conflict();
 
         return TypedResults.Created();
     }
