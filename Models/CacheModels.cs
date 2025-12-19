@@ -469,6 +469,102 @@ public class UexCity
     public string? JurisdictionName { get; set; }
 }
 
+public class UexCommodity
+{
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("id_parent")]
+        public int IdParent { get; set; }
+
+        [JsonPropertyName("name")]
+        public required string Name { get; set; }
+
+        [JsonPropertyName("code")]
+        public required string Code { get; set; }
+
+        [JsonPropertyName("kind")]
+        public required string Kind { get; set; }
+
+        [JsonPropertyName("weight_scu")]
+        public double WeightScu { get; set; }
+
+        [JsonPropertyName("price_buy")]
+        public int PriceBuy { get; set; }
+
+        [JsonPropertyName("price_sell")]
+        public int PriceSell { get; set; }
+
+        [JsonPropertyName("is_available")]
+        public int IsAvailable { get; set; }
+
+        [JsonPropertyName("is_available_live")]
+        public int IsAvailableLive { get; set; }
+
+        [JsonPropertyName("is_visible")]
+        public int IsVisible { get; set; }
+
+        [JsonPropertyName("is_extractable")]
+        public int IsExtractable { get; set; }
+
+        [JsonPropertyName("is_mineral")]
+        public int IsMineral { get; set; }
+
+        [JsonPropertyName("is_raw")]
+        public int IsRaw { get; set; }
+
+        [JsonPropertyName("is_pure")]
+        public int IsPure { get; set; }
+
+        [JsonPropertyName("is_refined")]
+        public int IsRefined { get; set; }
+
+        [JsonPropertyName("is_refinable")]
+        public int IsRefinable { get; set; }
+
+        [JsonPropertyName("is_harvestable")]
+        public int IsHarvestable { get; set; }
+
+        [JsonPropertyName("is_buyable")]
+        public int IsBuyable { get; set; }
+
+        [JsonPropertyName("is_sellable")]
+        public int IsSellable { get; set; }
+
+        [JsonPropertyName("is_temporary")]
+        public int IsTemporary { get; set; }
+
+        [JsonPropertyName("is_illegal")]
+        public int IsIllegal { get; set; }
+
+        [JsonPropertyName("is_volatile_qt")]
+        public int IsVolatileQt { get; set; }
+
+        [JsonPropertyName("is_volatile_time")]
+        public int IsVolatileTime { get; set; }
+
+        [JsonPropertyName("is_inert")]
+        public int IsInert { get; set; }
+
+        [JsonPropertyName("is_explosive")]
+        public int IsExplosive { get; set; }
+
+        [JsonPropertyName("is_fuel")]
+        public int IsFuel { get; set; }
+
+        [JsonPropertyName("is_buggy")]
+        public int IsBuggy { get; set; }
+
+        [JsonPropertyName("wiki")]
+        public required string Wiki { get; set; }
+
+        [JsonPropertyName("date_added")]
+        public int DateAdded { get; set; }
+
+        [JsonPropertyName("date_modified")]
+        public int DateModified { get; set; }
+    }
+
 public class UexCityResponse
 {
     [JsonPropertyName("status")]
@@ -522,6 +618,18 @@ public class UexItemsResponse
     public int HttpCode { get; set; }
     [JsonPropertyName("data")]
     public List<UexItem>? Data { get; set; }
+    [JsonPropertyName("message")]
+    public required string Message { get; set; }
+}
+
+public class UexCommodityResponse
+{
+    [JsonPropertyName("status")]
+    public required string Status { get; set; }
+    [JsonPropertyName("http_code")]
+    public int HttpCode { get; set; }
+    [JsonPropertyName("data")]
+    public List<UexCommodity>? Data { get; set; }
     [JsonPropertyName("message")]
     public required string Message { get; set; }
 }

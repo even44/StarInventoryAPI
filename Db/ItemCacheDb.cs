@@ -343,6 +343,26 @@ public class ItemCacheDb : DbContext
             //Get items from category
             var responseTask = await client.GetAsync($"https://api.uexcorp.uk/2.0/items?id_category={category.Id}");
             var response = responseTask;
+
+            if (category.Name.Equals("Commodities"))
+            {
+                var commodityItems = await GetCommodities(db, client);
+                foreach (var commodity in commodityItems)
+                {
+                    var exisitingItem = await db.UexItems.FindAsync(commodity.Id);
+                    if (exisitingItem == null)
+                    {
+                        db.UexItems.Add(commodity);
+                    }
+                    else
+                    {
+                        exisitingItem = commodity;
+                    }
+                }
+
+                await db.SaveChangesAsync();
+            }
+            
             Console.WriteLine($"UEX Items Response for Category {category.Id}: {response.StatusCode}");
             if (response.IsSuccessStatusCode){
                 Console.WriteLine($"Parsing UEX Items Response for Category {category.Id}");
@@ -401,6 +421,38 @@ public class ItemCacheDb : DbContext
         }
         
         return true;
+    }
+
+    public async Task<List<UexItem>> GetCommodities(ItemCacheDb db, HttpClient client)
+    {
+        List<UexItem> commodityItems = [];
+        var responseTask = await client.GetAsync($"https://api.uexcorp.uk/2.0/commodities");
+        var response = responseTask;
+        if (response.IsSuccessStatusCode)
+        {
+            var itemsResponse = await response.Content.ReadFromJsonAsync<UexCommodityResponse>();
+            if (itemsResponse != null)
+            {
+                if (itemsResponse.Data == null) return [];
+                
+                foreach (UexCommodity commodity in itemsResponse.Data)
+                {
+                    var commodityItem = new UexItem
+                    {
+                        Id = commodity.Id + 10000,
+                        Name = commodity.Name,
+                        Slug = commodity.Code,
+                        categoryId = 36,
+                        DateAdded = commodity.DateAdded,
+                        DateModified = commodity.DateModified,
+
+                    };
+                    commodityItems.Add(commodityItem);
+                }
+            }
+        }
+
+        return commodityItems;
     }
 
 
