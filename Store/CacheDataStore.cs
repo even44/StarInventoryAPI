@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using StarInventoryAPI.Db;
 
 namespace StarInventoryAPI.Store;
 

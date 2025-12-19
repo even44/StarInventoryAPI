@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using StarInventoryAPI.Db;
 
 public static class HostExtensions
 {

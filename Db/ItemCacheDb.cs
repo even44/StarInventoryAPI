@@ -1,6 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
 
+namespace StarInventoryAPI.Db;
+
 public class ItemCacheDb : DbContext
 {
     public ItemCacheDb(DbContextOptions<ItemCacheDb> options) : base(options) { }
@@ -445,5 +447,3 @@ public class ItemCacheDb : DbContext
         return name;
     }
 }
-
-
