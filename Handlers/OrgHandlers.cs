@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.Http.HttpResults;
+using StarInventoryAPI.Store;
 
 namespace StarInventoryAPI.Handlers;
 

@@ -7,7 +7,7 @@ public static class RecipeDataStore
 {
     public static async Task<List<Recipe>> ListRecipes(ItemCacheDb db)
     {
-        List<Recipe> recipes = await db.Recipes.ToListAsync();
+        var recipes = await db.Recipes.ToListAsync();
         return recipes;
     }
 
@@ -30,7 +30,7 @@ public static class RecipeDataStore
 
     public static async Task<bool> RemoveRecipe(ItemCacheDb db, int id)
     {
-        Recipe? existingRecipe = await db.Recipes.FindAsync(id);
+        var existingRecipe = await db.Recipes.FindAsync(id);
 
         if (existingRecipe == null) return false;
 
@@ -43,7 +43,7 @@ public static class RecipeDataStore
 
     public static async Task<bool> UpdateRecipe(ItemCacheDb db, Recipe recipe, int id)
     {
-        Recipe? existingRecipe = await db.Recipes.FindAsync(id);
+        var existingRecipe = await db.Recipes.FindAsync(id);
 
         if (existingRecipe == null) return false;
 

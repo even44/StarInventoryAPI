@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
+namespace StarInventoryAPI.Store;
+
 public static class UserDataStore
 {
     // USER actions
@@ -33,7 +35,7 @@ public static class UserDataStore
         return true;
     }
 
-    public static async Task<bool> ensureUserExists(ItemCacheDb db, string username)
+    public static async Task<bool> EnsureUserExists(ItemCacheDb db, string username)
     {
         if (null == await UserDataStore.GetUser(username, db))
         {

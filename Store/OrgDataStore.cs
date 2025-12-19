@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
+namespace StarInventoryAPI.Store;
+
 public static class OrgDataStore
 {
     public static async Task<List<StarItem>> GetOrgInventory(ItemCacheDb db)
