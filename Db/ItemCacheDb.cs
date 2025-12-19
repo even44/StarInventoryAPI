@@ -340,7 +340,6 @@ public class ItemCacheDb : DbContext
 
         foreach (UexCategory category in categories)
         {
-            if (category.Id < 12) continue;
             //Get items from category
             var responseTask = await client.GetAsync($"https://api.uexcorp.uk/2.0/items?id_category={category.Id}");
             var response = responseTask;
