@@ -423,7 +423,7 @@ public class ItemCacheDb : DbContext
 
     private static string FixQuotes(string dirtyName)
     {
-        var name = dirtyName.Replace("&qupt;", "\"");
+        var name = dirtyName.Replace("&quot;", "\"");
         return name;
     }
     private static string FixAmp(string dirtyName)
