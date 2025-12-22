@@ -6,8 +6,8 @@ namespace StarInventoryAPI.Handlers;
 
 internal static class DevHandlers
 {
-
-    public static IResult UpdateCacheFromUex(bool updateItems, bool updateLocations, ItemCacheDb db, IHttpClientFactory httpClientFactory, CancellationToken cancellationToken)
+    public static IResult UpdateCacheFromUex(bool updateItems, bool updateLocations, ItemCacheDb db,
+        IHttpClientFactory httpClientFactory, CancellationToken cancellationToken)
     {
         return TypedResults.ServerSentEvents(Stream(cancellationToken));
 
@@ -20,19 +20,28 @@ internal static class DevHandlers
             {
                 yield return new { status = "updating_categories" };
                 var catResult = await db.UpdateCategories(db, client);
-                if (!catResult)
+                if (catResult.Count == 0)
                 {
                     yield return new { status = "error", step = "categories" };
                     yield break;
                 }
 
-                yield return new { status = "updating_items" };
-                var itemResult = await db.UpdateItems(db, client);
-                if (!itemResult)
+               
+
+                foreach (var cat in catResult)
                 {
+                    yield return new { status = "updating_items", category = cat };
+                    var itemResult = await db.UpdateItemsFromCategory(cat, db, client);
+                    if (itemResult)
+                    {
+                        continue;
+                    }
+
+                    ;
                     yield return new { status = "error", step = "items" };
                     yield break;
                 }
+
 
                 yield return new { status = "items_updated" };
             }
