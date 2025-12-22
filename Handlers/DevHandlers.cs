@@ -1,8 +1,11 @@
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http.HttpResults;
 using StarInventoryAPI.Db;
+using StarInventoryAPI.Store;
 
 namespace StarInventoryAPI.Handlers;
+
+internal record ProgressReport(int Current, int Total);
 
 internal static class DevHandlers
 {
@@ -28,9 +31,10 @@ internal static class DevHandlers
 
                
 
-                foreach (var cat in catResult)
+                for (var i = 0; i < catResult.Count; i++)
                 {
-                    yield return new { status = "updating_items", category = cat };
+                    var cat = catResult[i];
+                    yield return new { status = "updating_items", category = new CategoryDto(cat.Id, cat.Name), progress = new ProgressReport(i+1, catResult.Count) };
                     var itemResult = await db.UpdateItemsFromCategory(cat, db, client);
                     if (itemResult)
                     {

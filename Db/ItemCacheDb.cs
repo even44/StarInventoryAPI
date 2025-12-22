@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace StarInventoryAPI.Db;
 
+public record CategoryDto(int Id, string Name);
+
 public class ItemCacheDb : DbContext
 {
     public ItemCacheDb(DbContextOptions<ItemCacheDb> options) : base(options)
