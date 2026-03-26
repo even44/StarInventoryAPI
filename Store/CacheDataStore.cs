@@ -47,4 +47,9 @@ public static class CacheDataStore
         var stations = await db.UexSpaceStations.ToListAsync();
         return stations;
     }
+    
+    public static async Task<List<UexItem>> GetItemsFromCategory(int categoryId, ItemCacheDb db)
+    {
+        return await db.UexItems.Where(item => item.categoryId == categoryId).ToListAsync();
+    }
 }

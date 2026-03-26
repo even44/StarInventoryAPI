@@ -1,13 +1,16 @@
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http.HttpResults;
 using StarInventoryAPI.Db;
+using StarInventoryAPI.Store;
 
 namespace StarInventoryAPI.Handlers;
 
+internal record ProgressReport(int Current, int Total);
+
 internal static class DevHandlers
 {
-
-    public static IResult UpdateCacheFromUex(bool updateItems, bool updateLocations, ItemCacheDb db, IHttpClientFactory httpClientFactory, CancellationToken cancellationToken)
+    public static IResult UpdateCacheFromUex(bool updateItems, bool updateLocations, ItemCacheDb db,
+        IHttpClientFactory httpClientFactory, CancellationToken cancellationToken)
     {
         return TypedResults.ServerSentEvents(Stream(cancellationToken));
 
@@ -20,19 +23,29 @@ internal static class DevHandlers
             {
                 yield return new { status = "updating_categories" };
                 var catResult = await db.UpdateCategories(db, client);
-                if (!catResult)
+                if (catResult.Count == 0)
                 {
                     yield return new { status = "error", step = "categories" };
                     yield break;
                 }
 
-                yield return new { status = "updating_items" };
-                var itemResult = await db.UpdateItems(db, client);
-                if (!itemResult)
+               
+
+                for (var i = 0; i < catResult.Count; i++)
                 {
+                    var cat = catResult[i];
+                    yield return new { status = "updating_items", category = new CategoryDto(cat.Id, cat.Name), progress = new ProgressReport(i+1, catResult.Count) };
+                    var itemResult = await db.UpdateItemsFromCategory(cat, db, client);
+                    if (itemResult)
+                    {
+                        continue;
+                    }
+
+                    ;
                     yield return new { status = "error", step = "items" };
                     yield break;
                 }
+
 
                 yield return new { status = "items_updated" };
             }

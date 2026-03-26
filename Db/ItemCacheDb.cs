@@ -1,11 +1,14 @@
-
 using Microsoft.EntityFrameworkCore;
 
 namespace StarInventoryAPI.Db;
 
+public record CategoryDto(int Id, string Name);
+
 public class ItemCacheDb : DbContext
 {
-    public ItemCacheDb(DbContextOptions<ItemCacheDb> options) : base(options) { }
+    public ItemCacheDb(DbContextOptions<ItemCacheDb> options) : base(options)
+    {
+    }
 
     public DbSet<UexItem> CacheItems => Set<UexItem>();
     public DbSet<StarItem> PersonalItems => Set<StarItem>();
@@ -19,9 +22,8 @@ public class ItemCacheDb : DbContext
     public DbSet<OrgInventoryUser> OrgInventoryUsers => Set<OrgInventoryUser>();
     public DbSet<Recipe> Recipes => Set<Recipe>();
 
- 
 
-    public async Task<bool> UpdateCategories(ItemCacheDb db, HttpClient client)
+    public async Task<List<UexCategory>> UpdateCategories(ItemCacheDb db, HttpClient client)
     {
         var responseTask = await client.GetAsync("https://api.uexcorp.uk/2.0/categories");
         var response = responseTask;
@@ -32,10 +34,12 @@ public class ItemCacheDb : DbContext
             var categoriesResponse = await response.Content.ReadFromJsonAsync<UexCategoryResponse>();
             if (categoriesResponse != null)
             {
-                Console.WriteLine($"UEX Categories Parsed Response: {categoriesResponse.HttpCode} {categoriesResponse.Status} [{categoriesResponse.Message}]");
+                Console.WriteLine(
+                    $"UEX Categories Parsed Response: {categoriesResponse.HttpCode} {categoriesResponse.Status} [{categoriesResponse.Message}]");
                 foreach (UexCategory category in categoriesResponse.Data)
                 {
-                    Console.WriteLine($"Processing Category: {category.Id} {category.Name} {category.Section} {category.Type} {category.IsGameRelated} {category.IsMining} {category.DateAdded} {category.DateModified}");
+                    Console.WriteLine(
+                        $"Processing Category: {category.Id} {category.Name} {category.Section} {category.Type} {category.IsGameRelated} {category.IsMining} {category.DateAdded} {category.DateModified}");
                     var existingCategory = await db.UexCategories.FindAsync(category.Id);
                     if (existingCategory == null)
                     {
@@ -53,14 +57,17 @@ public class ItemCacheDb : DbContext
                         existingCategory.DateModified = category.DateModified;
                     }
                 }
+
                 await SaveChangesAsync();
                 Console.WriteLine("UEX Categories Updated Successfully");
-                return true;
+                return await db.UexCategories.ToListAsync();
             }
+
             Console.WriteLine("UEX Categories Parsing Failed");
         }
+
         Console.WriteLine("UEX Categories Update Failed");
-        return false;
+        return [];
     }
 
     public async Task<bool> UpdatePois(ItemCacheDb db, HttpClient client)
@@ -133,12 +140,15 @@ public class ItemCacheDb : DbContext
                         existingLocation.JurisdictionName = location.JurisdictionName;
                     }
                 }
+
                 await SaveChangesAsync();
                 Console.WriteLine("UEX Locations Updated Successfully");
                 return true;
             }
+
             Console.WriteLine("UEX Locations Parsing Failed");
         }
+
         return false;
     }
 
@@ -153,7 +163,8 @@ public class ItemCacheDb : DbContext
             var stationsResponse = await response.Content.ReadFromJsonAsync<UexSpaceStationResponse>();
             if (stationsResponse != null)
             {
-                Console.WriteLine($"UEX Space Stations Parsed Response: {stationsResponse.HttpCode} {stationsResponse.Status} [{stationsResponse.Message}]");
+                Console.WriteLine(
+                    $"UEX Space Stations Parsed Response: {stationsResponse.HttpCode} {stationsResponse.Status} [{stationsResponse.Message}]");
                 foreach (UexSpaceStation station in stationsResponse.Data)
                 {
                     Console.WriteLine($"Processing Space Station: {station.Id} {station.Name}");
@@ -210,12 +221,15 @@ public class ItemCacheDb : DbContext
                         existingStation.JurisdictionName = station.JurisdictionName;
                     }
                 }
+
                 await SaveChangesAsync();
                 Console.WriteLine("UEX Space Stations Updated Successfully");
                 return true;
             }
+
             Console.WriteLine("UEX Space Stations Parsing Failed");
         }
+
         Console.WriteLine("UEX Space Stations Update Failed");
         return false;
     }
@@ -241,10 +255,12 @@ public class ItemCacheDb : DbContext
                         existingCity = city;
                     }
                 }
+
                 await SaveChangesAsync();
                 return true;
             }
         }
+
         return false;
     }
 
@@ -282,6 +298,7 @@ public class ItemCacheDb : DbContext
             {
                 existingLocation.Name = poi.Name;
             }
+
             i++;
         }
 
@@ -301,6 +318,7 @@ public class ItemCacheDb : DbContext
             {
                 existingLocation.Name = station.Name;
             }
+
             i++;
         }
 
@@ -320,106 +338,110 @@ public class ItemCacheDb : DbContext
             {
                 existingLocation.Name = city.Name;
             }
+
             i++;
         }
+
         await SaveChangesAsync();
 
 
         if (db.StarLocations.Count() != (totalPois + totalStations + totalCities))
         {
-            Console.WriteLine($"Location count mismatch! {db.StarLocations.Count()} != {totalPois} + {totalStations} + {totalCities} i={i}");
+            Console.WriteLine(
+                $"Location count mismatch! {db.StarLocations.Count()} != {totalPois} + {totalStations} + {totalCities} i={i}");
             return false;
         }
-        Console.WriteLine($"Compiled {totalPois} + {totalStations} + {totalCities} = {totalPois+totalStations+totalCities} locations");
+
+        Console.WriteLine(
+            $"Compiled {totalPois} + {totalStations} + {totalCities} = {totalPois + totalStations + totalCities} locations");
         return true;
     }
 
-    public async Task<bool> UpdateItems(ItemCacheDb db, HttpClient client){
+    public async Task<bool> UpdateItemsFromCategory(UexCategory cat, ItemCacheDb db, HttpClient client)
+    {
+        //Get items from category
+        var responseTask = await client.GetAsync($"https://api.uexcorp.uk/2.0/items?id_category={cat.Id}");
+        var response = responseTask;
 
-        List<UexCategory> categories = await db.UexCategories.Where(c => c.Type.Equals("item")).ToListAsync();
-
-        foreach (UexCategory category in categories)
+        if (cat.Name.Equals("Commodities"))
         {
-            //Get items from category
-            var responseTask = await client.GetAsync($"https://api.uexcorp.uk/2.0/items?id_category={category.Id}");
-            var response = responseTask;
-
-            if (category.Name.Equals("Commodities"))
+            var commodityItems = await GetCommodities(db, client);
+            foreach (var commodity in commodityItems)
             {
-                var commodityItems = await GetCommodities(db, client);
-                foreach (var commodity in commodityItems)
+                var exisitingItem = await db.UexItems.FindAsync(commodity.Id);
+                if (exisitingItem == null)
                 {
-                    var exisitingItem = await db.UexItems.FindAsync(commodity.Id);
-                    if (exisitingItem == null)
-                    {
-                        db.UexItems.Add(commodity);
-                    }
-                    else
-                    {
-                        exisitingItem = commodity;
-                    }
-                }
-
-                await db.SaveChangesAsync();
-            }
-            
-            Console.WriteLine($"UEX Items Response for Category {category.Id}: {response.StatusCode}");
-            if (response.IsSuccessStatusCode){
-                Console.WriteLine($"Parsing UEX Items Response for Category {category.Id}");
-                var itemsResponse = await response.Content.ReadFromJsonAsync<UexItemsResponse>();
-                if (itemsResponse != null)
-                {
-                    Console.WriteLine($"UEX Items Parsed Response for Category {category.Id}: {itemsResponse.HttpCode} {itemsResponse.Status} [{itemsResponse.Message}]");
-                    if (itemsResponse.Data == null) continue;
-                    foreach (UexItem item in itemsResponse.Data)
-                    {
-                        item.Name = RemoveHtmlArtifactsFromString(item.Name);
-                        Console.WriteLine($"Processing Item: {item.Id} {item.Name}");
-                        var existingItem = await db.UexItems.FindAsync(item.Id);
-                        if (existingItem == null)
-                        {
-                            db.UexItems.Add(item);
-                            Console.WriteLine($"Added New Item: {item.Name}");
-                        }
-                        else
-                        {
-                            existingItem.parentId = item.parentId;
-                            existingItem.categoryId = item.categoryId;
-                            existingItem.vehicleId = item.vehicleId;
-                            existingItem.Name = item.Name;
-                            existingItem.Section = item.Section;
-                            existingItem.Category = item.Category;
-                            existingItem.CompanyName = item.CompanyName;
-                            existingItem.VehicleName = item.VehicleName;
-                            existingItem.Slug = item.Slug;
-                            existingItem.Size = item.Size;
-                            existingItem.Uuid = item.Uuid;
-                            existingItem.StoreUrl = item.StoreUrl;
-                            existingItem.is_exclusive_pledge = item.is_exclusive_pledge;
-                            existingItem.is_exclusive_subscriber = item.is_exclusive_subscriber;
-                            existingItem.is_exclusive_concierge = item.is_exclusive_concierge;
-                            existingItem.is_commodity = item.is_commodity;
-                            existingItem.is_harvestable = item.is_harvestable;
-                            existingItem.Notification = item.Notification;
-                            existingItem.GameVersion = item.GameVersion;
-                            existingItem.DateAdded = item.DateAdded;
-                            existingItem.DateModified = item.DateModified;
-                        }
-                    }
-                    await SaveChangesAsync();
-                    Console.WriteLine("UEX Items Updated Successfully");
+                    db.UexItems.Add(commodity);
                 }
                 else
                 {
-                    Console.WriteLine("UEX Items Parsing Failed");
+                    exisitingItem = commodity;
                 }
+            }
+
+            await db.SaveChangesAsync();
+        }
+
+        Console.WriteLine($"UEX Items Response for Category {cat.Id}: {response.StatusCode}");
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"Parsing UEX Items Response for Category {cat.Id}");
+            var itemsResponse = await response.Content.ReadFromJsonAsync<UexItemsResponse>();
+            if (itemsResponse != null)
+            {
+                Console.WriteLine(
+                    $"UEX Items Parsed Response for Category {cat.Id}: {itemsResponse.HttpCode} {itemsResponse.Status} [{itemsResponse.Message}]");
+                if (itemsResponse.Data == null) return true;
+                foreach (UexItem item in itemsResponse.Data)
+                {
+                    item.Name = RemoveHtmlArtifactsFromString(item.Name);
+                    Console.WriteLine($"Processing Item: {item.Id} {item.Name}");
+                    var existingItem = await db.UexItems.FindAsync(item.Id);
+                    if (existingItem == null)
+                    {
+                        db.UexItems.Add(item);
+                        Console.WriteLine($"Added New Item: {item.Name}");
+                    }
+                    else
+                    {
+                        existingItem.parentId = item.parentId;
+                        existingItem.categoryId = item.categoryId;
+                        existingItem.vehicleId = item.vehicleId;
+                        existingItem.Name = item.Name;
+                        existingItem.Section = item.Section;
+                        existingItem.Category = item.Category;
+                        existingItem.CompanyName = item.CompanyName;
+                        existingItem.VehicleName = item.VehicleName;
+                        existingItem.Slug = item.Slug;
+                        existingItem.Size = item.Size;
+                        existingItem.Uuid = item.Uuid;
+                        existingItem.StoreUrl = item.StoreUrl;
+                        existingItem.is_exclusive_pledge = item.is_exclusive_pledge;
+                        existingItem.is_exclusive_subscriber = item.is_exclusive_subscriber;
+                        existingItem.is_exclusive_concierge = item.is_exclusive_concierge;
+                        existingItem.is_commodity = item.is_commodity;
+                        existingItem.is_harvestable = item.is_harvestable;
+                        existingItem.Notification = item.Notification;
+                        existingItem.GameVersion = item.GameVersion;
+                        existingItem.DateAdded = item.DateAdded;
+                        existingItem.DateModified = item.DateModified;
+                    }
+                }
+
+                await SaveChangesAsync();
+                Console.WriteLine("UEX Items Updated Successfully");
             }
             else
             {
-                Console.WriteLine("UEX Items Update Failed");
+                Console.WriteLine("UEX Items Parsing Failed");
             }
         }
-        
+        else
+        {
+            Console.WriteLine("UEX Items Update Failed");
+        }
+
+
         return true;
     }
 
@@ -434,7 +456,7 @@ public class ItemCacheDb : DbContext
             if (itemsResponse != null)
             {
                 if (itemsResponse.Data == null) return [];
-                
+
                 foreach (UexCommodity commodity in itemsResponse.Data)
                 {
                     var commodityItem = new UexItem
@@ -445,7 +467,6 @@ public class ItemCacheDb : DbContext
                         categoryId = 36,
                         DateAdded = commodity.DateAdded,
                         DateModified = commodity.DateModified,
-
                     };
                     commodityItems.Add(commodityItem);
                 }
@@ -479,11 +500,13 @@ public class ItemCacheDb : DbContext
         var name = dirtyName.Replace("&quot;", "\"");
         return name;
     }
+
     private static string FixAmp(string dirtyName)
     {
         var name = dirtyName.Replace("&amp;", String.Empty);
         return name;
     }
+
     private static string FixApos(string dirtyName)
     {
         var name = dirtyName.Replace("&apos;", "\'");
