@@ -1,16 +1,19 @@
 using StarInventoryAPI.Handlers;
 
-public static class AdminEndpoints
+namespace StarInventoryAPI.Endpoints
 {
-    public static void MapAdminEndpoints(this IEndpointRouteBuilder app)
+    public static class AdminEndpoints
     {
-        var adminApi = app.MapGroup("/admin")
-        .WithTags("Administration")
-        .RequireAuthorization("admin");
+        public static void MapAdminEndpoints(this IEndpointRouteBuilder app)
+        {
+            var adminApi = app.MapGroup("/admin")
+            .WithTags("Administration")
+            .RequireAuthorization("admin");
 
-        adminApi.MapDelete("/wipePersonalItems", AdminHandlers.WipeAllUsersPersonalItems);
+            adminApi.MapDelete("/wipePersonalItems", AdminHandlers.WipeAllUsersPersonalItems);
 
-        adminApi.MapGet("/users", AdminHandlers.GetUsersList);
+            adminApi.MapGet("/users", AdminHandlers.GetUsersList);
 
+        }
     }
 }

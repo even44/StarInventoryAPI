@@ -3,11 +3,11 @@ name: Build and Push Docker Image to GitHub Container Registry
 on:
   push:
     branches:
-      - 'master'
+      - "master"
   pull_request:
     branches:
-      - 'master'
-  workflow_dispatch:  # This allows manual triggering of the workflow
+      - "master"
+  workflow_dispatch: # This allows manual triggering of the workflow
 
 jobs:
   build:
@@ -25,7 +25,7 @@ jobs:
         run: |
           echo "REPO_LC=${OWNER,,}" >>${GITHUB_ENV}
         env:
-          OWNER: '${{ github.repository }}'
+          OWNER: "${{ github.repository }}"
 
       - name: Build and push docker image
         uses: docker/build-push-action@v4
@@ -35,8 +35,9 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO_LC }}:latest
             ghcr.io/${{ env.REPO_LC }}:${{ github.sha }}
-            
+
       - name: UpdateGitOps repository
+        if: ${{ github.event_name != 'pull_request' }}
         shell: bash
         env:
           GIT_TOKEN: ${{secrets.GITOPS_PAT }}
@@ -45,18 +46,18 @@ jobs:
           git config --global credential.helper store
           echo "https://${GIT_TOKEN}:x-oauth-basic@github.com" > ~/.git-credentials
           rm -rf gitops
-          
+
           # Clone repo and cd to app
           git clone https://github.com/even44/kubuxter.git gitops
           cd gitops/talos-proxmox-cluster/kustomize/starinventory
-          
+
           # Replace image
           sed -i "s|image: ghcr.io/${{ env.REPO_LC }}:.*|image: ghcr.io/${{ env.REPO_LC}}:${{github.sha}}|g" api-deployment.yaml
-          
+
           # Commit changes
           git config --global user.name "Github Actions - Star Inventory"
           git config --global user.email "actions@github.com"
           git add api-deployment.yaml
           git commit -m "Update image to ${{github.sha}}"
-          
+
           git push -f https://${GIT_TOKEN}@github.com/even44/kubuxter.git main

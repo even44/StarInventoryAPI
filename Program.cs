@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StarInventoryAPI.Db;
+using StarInventoryAPI.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,23 +1,26 @@
 using StarInventoryAPI.Handlers;
 
-public static class CacheEndpoints
+namespace StarInventoryAPI.Endpoints
 {
-
-    public static void MapCacheEndpoints(this IEndpointRouteBuilder app)
+    public static class CacheEndpoints
     {
 
-        var cacheApi = app.MapGroup("/cache")
-            .WithTags("Cached Items")
-            .RequireAuthorization("user");
+        public static void MapCacheEndpoints(this IEndpointRouteBuilder app)
+        {
 
-        cacheApi.MapGet("/locations", CacheHandlers.GetLocationsList);
+            var cacheApi = app.MapGroup("/cache")
+                .WithTags("Cached Items")
+                .RequireAuthorization("user");
 
-        cacheApi.MapGet("/locations/{searchTerm}", CacheHandlers.GetLocationsListSearch);
+            cacheApi.MapGet("/locations", CacheHandlers.GetLocationsList);
 
-        cacheApi.MapGet("/categories", CacheHandlers.GetCategoriesList);
+            cacheApi.MapGet("/locations/{searchTerm}", CacheHandlers.GetLocationsListSearch);
 
-        cacheApi.MapGet("/items", CacheHandlers.GetItemsList);
+            cacheApi.MapGet("/categories", CacheHandlers.GetCategoriesList);
 
-        cacheApi.MapGet("/items/{searchTerm}", CacheHandlers.GetItemsListSearch);
+            cacheApi.MapGet("/items", CacheHandlers.GetItemsList);
+
+            cacheApi.MapGet("/items/{searchTerm}", CacheHandlers.GetItemsListSearch);
+        }
     }
 }
