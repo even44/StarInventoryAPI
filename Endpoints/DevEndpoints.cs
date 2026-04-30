@@ -1,15 +1,18 @@
 using StarInventoryAPI.Handlers;
 
-public static class DevEndpoints
+namespace StarInventoryAPI.Endpoints
 {
-    public static void MapDevEndpoints(this IEndpointRouteBuilder app)
+    public static class DevEndpoints
     {
-        var devApi = app.MapGroup("/dev")
-            .WithTags("Development")
-            .RequireAuthorization("dev");
+        public static void MapDevEndpoints(this IEndpointRouteBuilder app)
+        {
+            var devApi = app.MapGroup("/dev")
+                .WithTags("Development")
+                .RequireAuthorization("dev");
 
-        // Update the Cache from UEX and compile a list of locations
-        devApi.MapGet("/updateCache", DevHandlers.UpdateCacheFromUex);
+            // Update the Cache from UEX and compile a list of locations
+            devApi.MapGet("/updateCache", DevHandlers.UpdateCacheFromUex);
 
+        }
     }
 }

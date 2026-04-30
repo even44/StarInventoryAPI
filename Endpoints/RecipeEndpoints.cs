@@ -1,18 +1,22 @@
 using StarInventoryAPI.Handlers;
 
-public static class RecipeEndpoints
+namespace StarInventoryAPI.Endpoints
 {
-    public static void MapRecipeEndpoints(this IEndpointRouteBuilder app)
+    public static class RecipeEndpoints
     {
-        var recipeApi = app.MapGroup("/recipe").WithTags("Recipes").RequireAuthorization("user");
-        
-        recipeApi.MapGet("/", RecipeHandlers.GetAllRecipesList);
+        public static void MapRecipeEndpoints(this IEndpointRouteBuilder app)
+        {
+            var recipeApi = app.MapGroup("/recipe").WithTags("Recipes").RequireAuthorization("user");
 
-        recipeApi.MapPost("/", RecipeHandlers.AddRecipe).RequireAuthorization("organization");
+            recipeApi.MapGet("/", RecipeHandlers.GetAllRecipesList);
 
-        recipeApi.MapDelete("/{id}", RecipeHandlers.RemoveRecipe).RequireAuthorization("organization");
+            recipeApi.MapPost("/", RecipeHandlers.AddRecipe).RequireAuthorization("organization");
 
-        recipeApi.MapPut("/{id}", RecipeHandlers.EditRecipe).RequireAuthorization("organization");
+            recipeApi.MapDelete("/{id}", RecipeHandlers.RemoveRecipe).RequireAuthorization("organization");
+
+            recipeApi.MapPut("/{id}", RecipeHandlers.EditRecipe).RequireAuthorization("organization");
+        }
+
     }
 
 }

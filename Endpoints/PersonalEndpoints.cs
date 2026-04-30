@@ -1,27 +1,30 @@
 using StarInventoryAPI.Handlers;
 
-public static class PersonalEndpoints
+namespace StarInventoryAPI.Endpoints
 {
-    public static void MapPersonalEndpoints(this IEndpointRouteBuilder app)
+    public static class PersonalEndpoints
     {
-        var personalApi = app.MapGroup("/personal")
-            .WithTags("Personal Items")
-            .RequireAuthorization("user");
+        public static void MapPersonalEndpoints(this IEndpointRouteBuilder app)
+        {
+            var personalApi = app.MapGroup("/personal")
+                .WithTags("Personal Items")
+                .RequireAuthorization("user");
 
-        // GET LIST
-        personalApi.MapGet("/items", PersonalItemHandlers.GetAllPersonalItemsList);
+            // GET LIST
+            personalApi.MapGet("/items", PersonalItemHandlers.GetAllPersonalItemsList);
 
-        personalApi.MapGet("/items/{searchTerm}", PersonalItemHandlers.GetAllPersonalItemsListSearch);
-        // ADD ONE
-        personalApi.MapPost("/items", PersonalItemHandlers.AddPersonalItemToInventory);
-        // DELETE ONE
-        personalApi.MapDelete("/items/{id}", PersonalItemHandlers.RemovePersonalItemFromInventory);
+            personalApi.MapGet("/items/{searchTerm}", PersonalItemHandlers.GetAllPersonalItemsListSearch);
+            // ADD ONE
+            personalApi.MapPost("/items", PersonalItemHandlers.AddPersonalItemToInventory);
+            // DELETE ONE
+            personalApi.MapDelete("/items/{id}", PersonalItemHandlers.RemovePersonalItemFromInventory);
 
-        personalApi.MapPut("/items/{id}", PersonalItemHandlers.GetOnePersonalItemFromId);
+            personalApi.MapPut("/items/{id}", PersonalItemHandlers.GetOnePersonalItemFromId);
 
-        personalApi.MapDelete("/wipePersonalItems", PersonalItemHandlers.WipeAllPersonalItems);
+            personalApi.MapDelete("/wipePersonalItems", PersonalItemHandlers.WipeAllPersonalItems);
 
 
 
+        }
     }
 }
