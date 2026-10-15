@@ -25,42 +25,34 @@ public class ItemCacheDb : DbContext
 
     public async Task<List<UexCategory>> UpdateCategories(ItemCacheDb db, HttpClient client)
     {
-        var responseTask = await client.GetAsync("https://api.uexcorp.uk/2.0/categories");
-        var response = responseTask;
+        var response = await client.GetAsync("https://api.uexcorp.uk/2.0/categories");
         Console.WriteLine($"UEX Categories Response: {response.StatusCode}");
         if (response.IsSuccessStatusCode)
         {
-            Console.WriteLine("Parsing UEX Categories Response");
             var categoriesResponse = await response.Content.ReadFromJsonAsync<UexCategoryResponse>();
-            if (categoriesResponse != null)
+            if (categoriesResponse?.Data != null)
             {
-                Console.WriteLine(
-                    $"UEX Categories Parsed Response: {categoriesResponse.HttpCode} {categoriesResponse.Status} [{categoriesResponse.Message}]");
-                foreach (UexCategory category in categoriesResponse.Data)
+                var incomingCategories = categoriesResponse.Data;
+                var ids = incomingCategories.Select(c => c.Id).ToList();
+                var existingCategories = await db.UexCategories
+                    .Where(c => ids.Contains(c.Id))
+                    .ToDictionaryAsync(c => c.Id);
+
+                foreach (var category in incomingCategories)
                 {
-                    Console.WriteLine(
-                        $"Processing Category: {category.Id} {category.Name} {category.Section} {category.Type} {category.IsGameRelated} {category.IsMining} {category.DateAdded} {category.DateModified}");
-                    var existingCategory = await db.UexCategories.FindAsync(category.Id);
-                    if (existingCategory == null)
+                    if (existingCategories.TryGetValue(category.Id, out var existingCategory))
                     {
-                        db.UexCategories.Add(category);
-                        Console.WriteLine($"Added New Category: {category.Name}");
+                        db.Entry(existingCategory).CurrentValues.SetValues(category);
                     }
                     else
                     {
-                        existingCategory.Type = category.Type;
-                        existingCategory.Section = category.Section;
-                        existingCategory.Name = category.Name;
-                        existingCategory.IsGameRelated = category.IsGameRelated;
-                        existingCategory.IsMining = category.IsMining;
-                        existingCategory.DateAdded = category.DateAdded;
-                        existingCategory.DateModified = category.DateModified;
+                        db.UexCategories.Add(category);
                     }
                 }
 
-                await SaveChangesAsync();
-                Console.WriteLine("UEX Categories Updated Successfully");
-                return await db.UexCategories.ToListAsync();
+                await db.SaveChangesAsync();
+                Console.WriteLine($"UEX Categories Updated Successfully: {incomingCategories.Count} categories");
+                return await db.UexCategories.AsNoTracking().ToListAsync();
             }
 
             Console.WriteLine("UEX Categories Parsing Failed");
@@ -72,77 +64,33 @@ public class ItemCacheDb : DbContext
 
     public async Task<bool> UpdatePois(ItemCacheDb db, HttpClient client)
     {
-        var responseTask = await client.GetAsync("https://api.uexcorp.uk/2.0/poi");
-        var response = responseTask;
+        var response = await client.GetAsync("https://api.uexcorp.uk/2.0/poi");
         Console.WriteLine($"UEX Locations Response: {response.StatusCode}");
         if (response.IsSuccessStatusCode)
         {
-            Console.WriteLine("Parsing UEX Locations Response");
             var locations = await response.Content.ReadFromJsonAsync<UexLocationsResponse>();
-            if (locations != null)
+            if (locations?.Data != null)
             {
-                Console.WriteLine($"UEX Locations Parsed Response: {locations.Data.Count} locations");
-                foreach (UexPoi location in locations.Data)
+                var incomingPois = locations.Data;
+                var ids = incomingPois.Select(l => l.Id).ToList();
+                var existingPois = await db.UexPois
+                    .Where(p => ids.Contains(p.Id))
+                    .ToDictionaryAsync(p => p.Id);
+
+                foreach (var location in incomingPois)
                 {
-                    Console.WriteLine($"Processing Location: {location.Id} {location.Name}");
-                    var existingLocation = await db.UexPois.FindAsync(location.Id);
-                    if (existingLocation == null)
+                    if (existingPois.TryGetValue(location.Id, out var existingLocation))
                     {
-                        db.UexPois.Add(location);
-                        Console.WriteLine($"Added New Location: {location.Name}");
+                        db.Entry(existingLocation).CurrentValues.SetValues(location);
                     }
                     else
                     {
-                        existingLocation.StarSystemId = location.StarSystemId;
-                        existingLocation.PlanetId = location.PlanetId;
-                        existingLocation.OrbitId = location.OrbitId;
-                        existingLocation.MoonId = location.MoonId;
-                        existingLocation.SpaceStationId = location.SpaceStationId;
-                        existingLocation.CityId = location.CityId;
-                        existingLocation.OutpostId = location.OutpostId;
-                        existingLocation.FactionId = location.FactionId;
-                        existingLocation.JurisdictionId = location.JurisdictionId;
-                        existingLocation.Name = location.Name;
-                        existingLocation.Nickname = location.Nickname;
-                        existingLocation.IsAvailable = location.IsAvailable;
-                        existingLocation.IsAvailableLive = location.IsAvailableLive;
-                        existingLocation.IsVisible = location.IsVisible;
-                        existingLocation.IsDefault = location.IsDefault;
-                        existingLocation.IsMonitored = location.IsMonitored;
-                        existingLocation.IsArmistice = location.IsArmistice;
-                        existingLocation.IsLandable = location.IsLandable;
-                        existingLocation.IsDecommissioned = location.IsDecommissioned;
-                        existingLocation.HasQuantumMarker = location.HasQuantumMarker;
-                        existingLocation.HasTradeTerminal = location.HasTradeTerminal;
-                        existingLocation.HasHabitation = location.HasHabitation;
-                        existingLocation.HasRefinery = location.HasRefinery;
-                        existingLocation.HasCargoCenter = location.HasCargoCenter;
-                        existingLocation.HasClinic = location.HasClinic;
-                        existingLocation.HasFood = location.HasFood;
-                        existingLocation.HasShops = location.HasShops;
-                        existingLocation.HasRefuel = location.HasRefuel;
-                        existingLocation.HasRepair = location.HasRepair;
-                        existingLocation.HasGravity = location.HasGravity;
-                        existingLocation.HasLoadingDock = location.HasLoadingDock;
-                        existingLocation.HasDockingPort = location.HasDockingPort;
-                        existingLocation.HasFreightElevator = location.HasFreightElevator;
-                        existingLocation.PadTypes = location.PadTypes;
-                        existingLocation.DateAdded = location.DateAdded;
-                        existingLocation.DateModified = location.DateModified;
-                        existingLocation.StarSystemName = location.StarSystemName;
-                        existingLocation.PlanetName = location.PlanetName;
-                        existingLocation.OrbitName = location.OrbitName;
-                        existingLocation.MoonName = location.MoonName;
-                        existingLocation.SpaceStationName = location.SpaceStationName;
-                        existingLocation.OutpostName = location.OutpostName;
-                        existingLocation.CityName = location.CityName;
-                        existingLocation.FactionName = location.FactionName;
-                        existingLocation.JurisdictionName = location.JurisdictionName;
+                        db.UexPois.Add(location);
                     }
                 }
 
-                await SaveChangesAsync();
-                Console.WriteLine("UEX Locations Updated Successfully");
+                await db.SaveChangesAsync();
+                Console.WriteLine($"UEX Locations Updated Successfully: {incomingPois.Count} locations");
                 return true;
             }
 
@@ -154,76 +102,33 @@ public class ItemCacheDb : DbContext
 
     public async Task<bool> UpdateSpaceStations(ItemCacheDb db, HttpClient client)
     {
-        var responseTask = await client.GetAsync("https://api.uexcorp.uk/2.0/space_stations");
-        var response = responseTask;
+        var response = await client.GetAsync("https://api.uexcorp.uk/2.0/space_stations");
         Console.WriteLine($"UEX Space Stations Response: {response.StatusCode}");
         if (response.IsSuccessStatusCode)
         {
-            Console.WriteLine("Parsing UEX Space Stations Response");
             var stationsResponse = await response.Content.ReadFromJsonAsync<UexSpaceStationResponse>();
-            if (stationsResponse != null)
+            if (stationsResponse?.Data != null)
             {
-                Console.WriteLine(
-                    $"UEX Space Stations Parsed Response: {stationsResponse.HttpCode} {stationsResponse.Status} [{stationsResponse.Message}]");
-                foreach (UexSpaceStation station in stationsResponse.Data)
+                var incomingStations = stationsResponse.Data;
+                var ids = incomingStations.Select(s => s.Id).ToList();
+                var existingStations = await db.UexSpaceStations
+                    .Where(s => ids.Contains(s.Id))
+                    .ToDictionaryAsync(s => s.Id);
+
+                foreach (var station in incomingStations)
                 {
-                    Console.WriteLine($"Processing Space Station: {station.Id} {station.Name}");
-                    var existingStation = await db.UexSpaceStations.FindAsync(station.Id);
-                    if (existingStation == null)
+                    if (existingStations.TryGetValue(station.Id, out var existingStation))
                     {
-                        db.UexSpaceStations.Add(station);
-                        Console.WriteLine($"Added New Space Station: {station.Name}");
+                        db.Entry(existingStation).CurrentValues.SetValues(station);
                     }
                     else
                     {
-                        // Update all properties as needed
-                        existingStation.StarSystemId = station.StarSystemId;
-                        existingStation.PlanetId = station.PlanetId;
-                        existingStation.OrbitId = station.OrbitId;
-                        existingStation.MoonId = station.MoonId;
-                        existingStation.CityId = station.CityId;
-                        existingStation.FactionId = station.FactionId;
-                        existingStation.JurisdictionId = station.JurisdictionId;
-                        existingStation.Name = station.Name;
-                        existingStation.Nickname = station.Nickname;
-                        existingStation.IsAvailable = station.IsAvailable;
-                        existingStation.IsAvailableLive = station.IsAvailableLive;
-                        existingStation.IsVisible = station.IsVisible;
-                        existingStation.IsDefault = station.IsDefault;
-                        existingStation.IsMonitored = station.IsMonitored;
-                        existingStation.IsArmistice = station.IsArmistice;
-                        existingStation.IsLandable = station.IsLandable;
-                        existingStation.IsDecommissioned = station.IsDecommissioned;
-                        existingStation.IsLagrange = station.IsLagrange;
-                        existingStation.IsJumpPoint = station.IsJumpPoint;
-                        existingStation.HasQuantumMarker = station.HasQuantumMarker;
-                        existingStation.HasTradeTerminal = station.HasTradeTerminal;
-                        existingStation.HasHabitation = station.HasHabitation;
-                        existingStation.HasRefinery = station.HasRefinery;
-                        existingStation.HasCargoCenter = station.HasCargoCenter;
-                        existingStation.HasClinic = station.HasClinic;
-                        existingStation.HasFood = station.HasFood;
-                        existingStation.HasShops = station.HasShops;
-                        existingStation.HasRefuel = station.HasRefuel;
-                        existingStation.HasRepair = station.HasRepair;
-                        existingStation.HasGravity = station.HasGravity;
-                        existingStation.HasLoadingDock = station.HasLoadingDock;
-                        existingStation.HasDockingPort = station.HasDockingPort;
-                        existingStation.HasFreightElevator = station.HasFreightElevator;
-                        existingStation.PadTypes = station.PadTypes;
-                        existingStation.DateAdded = station.DateAdded;
-                        existingStation.DateModified = station.DateModified;
-                        existingStation.StarSystemName = station.StarSystemName;
-                        existingStation.PlanetName = station.PlanetName;
-                        existingStation.OrbitName = station.OrbitName;
-                        existingStation.CityName = station.CityName;
-                        existingStation.FactionName = station.FactionName;
-                        existingStation.JurisdictionName = station.JurisdictionName;
+                        db.UexSpaceStations.Add(station);
                     }
                 }
 
-                await SaveChangesAsync();
-                Console.WriteLine("UEX Space Stations Updated Successfully");
+                await db.SaveChangesAsync();
+                Console.WriteLine($"UEX Space Stations Updated Successfully: {incomingStations.Count} stations");
                 return true;
             }
 
@@ -236,27 +141,32 @@ public class ItemCacheDb : DbContext
 
     public async Task<bool> UpdateCities(ItemCacheDb db, HttpClient client)
     {
-        var responseTask = await client.GetAsync("https://api.uexcorp.uk/2.0/cities");
-        var response = responseTask;
+        var response = await client.GetAsync("https://api.uexcorp.uk/2.0/cities");
         if (response.IsSuccessStatusCode)
         {
             var citiesResponse = await response.Content.ReadFromJsonAsync<UexCityResponse>();
-            if (citiesResponse != null)
+            if (citiesResponse?.Data != null)
             {
-                foreach (UexCity city in citiesResponse.Data)
+                var incomingCities = citiesResponse.Data;
+                var ids = incomingCities.Select(c => c.Id).ToList();
+                var existingCities = await db.UexCities
+                    .Where(c => ids.Contains(c.Id))
+                    .ToDictionaryAsync(c => c.Id);
+
+                foreach (var city in incomingCities)
                 {
-                    var existingCity = await db.UexCities.FindAsync(city.Id);
-                    if (existingCity == null)
+                    if (existingCities.TryGetValue(city.Id, out var existingCity))
                     {
-                        db.UexCities.Add(city);
+                        db.Entry(existingCity).CurrentValues.SetValues(city);
                     }
                     else
                     {
-                        existingCity = city;
+                        db.UexCities.Add(city);
                     }
                 }
 
-                await SaveChangesAsync();
+                await db.SaveChangesAsync();
+                Console.WriteLine($"UEX Cities Updated Successfully: {incomingCities.Count} cities");
                 return true;
             }
         }
@@ -266,197 +176,146 @@ public class ItemCacheDb : DbContext
 
     public async Task<bool> CompileLocations(ItemCacheDb db)
     {
-        // Get total count of Pois
-        int totalPois = await db.UexPois.CountAsync();
-        // Get all Pois
-        List<UexPoi> pois = await db.UexPois.ToListAsync();
+        var pois = await db.UexPois.AsNoTracking().ToListAsync();
+        var stations = await db.UexSpaceStations.AsNoTracking().ToListAsync();
+        var cities = await db.UexCities.AsNoTracking().ToListAsync();
 
-        // Get total count of Space Stations
-        int totalStations = await db.UexSpaceStations.CountAsync();
-        // Get all Space Stations
-        List<UexSpaceStation> stations = await db.UexSpaceStations.ToListAsync();
-
-        // Get total count of Space Stations
-        int totalCities = await db.UexCities.CountAsync();
-        // Get all Space Stations
-        List<UexCity> cities = await db.UexCities.ToListAsync();
+        var existingLocations = await db.StarLocations.ToDictionaryAsync(l => l.Id);
         int i = 0;
 
-        foreach (UexPoi poi in pois)
+        void AddOrUpdateLocation(string name)
         {
-            StarLocation? existingLocation = await db.StarLocations.FindAsync(i);
-            if (existingLocation == null)
+            if (existingLocations.TryGetValue(i, out var existingLocation))
             {
-                StarLocation newLocation = new StarLocation
-                {
-                    Id = i,
-                    Name = poi.Name,
-                };
-                db.StarLocations.Add(newLocation);
+                existingLocation.Name = name;
             }
             else
             {
-                existingLocation.Name = poi.Name;
+                db.StarLocations.Add(new StarLocation
+                {
+                    Id = i,
+                    Name = name,
+                });
             }
 
             i++;
         }
 
-        foreach (UexSpaceStation station in stations)
+        foreach (var poi in pois)
         {
-            StarLocation? existingLocation = await db.StarLocations.FindAsync(i);
-            if (existingLocation == null)
-            {
-                StarLocation newLocation = new StarLocation
-                {
-                    Id = i,
-                    Name = station.Name,
-                };
-                db.StarLocations.Add(newLocation);
-            }
-            else
-            {
-                existingLocation.Name = station.Name;
-            }
-
-            i++;
+            AddOrUpdateLocation(poi.Name);
         }
 
-        foreach (UexCity city in cities)
+        foreach (var station in stations)
         {
-            StarLocation? existingLocation = await db.StarLocations.FindAsync(i);
-            if (existingLocation == null)
-            {
-                StarLocation newLocation = new StarLocation
-                {
-                    Id = i,
-                    Name = city.Name,
-                };
-                db.StarLocations.Add(newLocation);
-            }
-            else
-            {
-                existingLocation.Name = city.Name;
-            }
-
-            i++;
+            AddOrUpdateLocation(station.Name);
         }
 
-        await SaveChangesAsync();
+        foreach (var city in cities)
+        {
+            AddOrUpdateLocation(city.Name);
+        }
 
+        var stale = existingLocations.Values.Where(l => l.Id >= i).ToList();
+        if (stale.Count > 0)
+        {
+            db.StarLocations.RemoveRange(stale);
+        }
 
-        if (db.StarLocations.Count() != (totalPois + totalStations + totalCities))
+        await db.SaveChangesAsync();
+
+        int totalExpected = pois.Count + stations.Count + cities.Count;
+        int totalActual = await db.StarLocations.CountAsync();
+        if (totalActual != totalExpected)
         {
             Console.WriteLine(
-                $"Location count mismatch! {db.StarLocations.Count()} != {totalPois} + {totalStations} + {totalCities} i={i}");
+                $"Location count mismatch! {totalActual} != {totalExpected} i={i}");
             return false;
         }
 
         Console.WriteLine(
-            $"Compiled {totalPois} + {totalStations} + {totalCities} = {totalPois + totalStations + totalCities} locations");
+            $"Compiled {pois.Count} + {stations.Count} + {cities.Count} = {totalActual} locations");
         return true;
     }
 
     public async Task<bool> UpdateItemsFromCategory(UexCategory cat, ItemCacheDb db, HttpClient client)
     {
-        //Get items from category
-        var responseTask = await client.GetAsync($"https://api.uexcorp.uk/2.0/items?id_category={cat.Id}");
-        var response = responseTask;
-
         if (cat.Name.Equals("Commodities"))
         {
             var commodityItems = await GetCommodities(db, client);
-            foreach (var commodity in commodityItems)
+            if (commodityItems.Count > 0)
             {
-                var exisitingItem = await db.UexItems.FindAsync(commodity.Id);
-                if (exisitingItem == null)
-                {
-                    db.UexItems.Add(commodity);
-                }
-                else
-                {
-                    exisitingItem = commodity;
-                }
-            }
+                var commodityIds = commodityItems.Select(c => c.Id).ToList();
+                var existingCommodities = await db.UexItems
+                    .Where(i => commodityIds.Contains(i.Id))
+                    .ToDictionaryAsync(i => i.Id);
 
-            await db.SaveChangesAsync();
-        }
-
-        Console.WriteLine($"UEX Items Response for Category {cat.Id}: {response.StatusCode}");
-        if (response.IsSuccessStatusCode)
-        {
-            Console.WriteLine($"Parsing UEX Items Response for Category {cat.Id}");
-            var itemsResponse = await response.Content.ReadFromJsonAsync<UexItemsResponse>();
-            if (itemsResponse != null)
-            {
-                Console.WriteLine(
-                    $"UEX Items Parsed Response for Category {cat.Id}: {itemsResponse.HttpCode} {itemsResponse.Status} [{itemsResponse.Message}]");
-                if (itemsResponse.Data == null) return true;
-                foreach (UexItem item in itemsResponse.Data)
+                foreach (var commodity in commodityItems)
                 {
-                    item.Name = RemoveHtmlArtifactsFromString(item.Name);
-                    Console.WriteLine($"Processing Item: {item.Id} {item.Name}");
-                    var existingItem = await db.UexItems.FindAsync(item.Id);
-                    if (existingItem == null)
+                    if (existingCommodities.TryGetValue(commodity.Id, out var existing))
                     {
-                        db.UexItems.Add(item);
-                        Console.WriteLine($"Added New Item: {item.Name}");
+                        db.Entry(existing).CurrentValues.SetValues(commodity);
                     }
                     else
                     {
-                        existingItem.parentId = item.parentId;
-                        existingItem.categoryId = item.categoryId;
-                        existingItem.vehicleId = item.vehicleId;
-                        existingItem.Name = item.Name;
-                        existingItem.Section = item.Section;
-                        existingItem.Category = item.Category;
-                        existingItem.CompanyName = item.CompanyName;
-                        existingItem.VehicleName = item.VehicleName;
-                        existingItem.Slug = item.Slug;
-                        existingItem.Size = item.Size;
-                        existingItem.Uuid = item.Uuid;
-                        existingItem.StoreUrl = item.StoreUrl;
-                        existingItem.is_exclusive_pledge = item.is_exclusive_pledge;
-                        existingItem.is_exclusive_subscriber = item.is_exclusive_subscriber;
-                        existingItem.is_exclusive_concierge = item.is_exclusive_concierge;
-                        existingItem.is_commodity = item.is_commodity;
-                        existingItem.is_harvestable = item.is_harvestable;
-                        existingItem.Notification = item.Notification;
-                        existingItem.GameVersion = item.GameVersion;
-                        existingItem.DateAdded = item.DateAdded;
-                        existingItem.DateModified = item.DateModified;
+                        db.UexItems.Add(commodity);
                     }
                 }
 
-                await SaveChangesAsync();
-                Console.WriteLine("UEX Items Updated Successfully");
-            }
-            else
-            {
-                Console.WriteLine("UEX Items Parsing Failed");
+                await db.SaveChangesAsync();
             }
         }
-        else
+
+        var response = await client.GetAsync($"https://api.uexcorp.uk/2.0/items?id_category={cat.Id}");
+        Console.WriteLine($"UEX Items Response for Category {cat.Id}: {response.StatusCode}");
+        if (response.IsSuccessStatusCode)
         {
-            Console.WriteLine("UEX Items Update Failed");
+            var itemsResponse = await response.Content.ReadFromJsonAsync<UexItemsResponse>();
+            if (itemsResponse?.Data != null && itemsResponse.Data.Count > 0)
+            {
+                var incomingItems = itemsResponse.Data;
+                foreach (var item in incomingItems)
+                {
+                    item.Name = RemoveHtmlArtifactsFromString(item.Name);
+                }
+
+                var itemIds = incomingItems.Select(i => i.Id).ToList();
+                var existingItems = await db.UexItems
+                    .Where(i => itemIds.Contains(i.Id))
+                    .ToDictionaryAsync(i => i.Id);
+
+                foreach (var item in incomingItems)
+                {
+                    if (existingItems.TryGetValue(item.Id, out var existingItem))
+                    {
+                        db.Entry(existingItem).CurrentValues.SetValues(item);
+                    }
+                    else
+                    {
+                        db.UexItems.Add(item);
+                    }
+                }
+
+                await db.SaveChangesAsync();
+                Console.WriteLine($"UEX Items for Category {cat.Id} ({cat.Name}) Updated Successfully: {incomingItems.Count} items");
+            }
+
+            return true;
         }
 
-
-        return true;
+        Console.WriteLine($"UEX Items Update Failed for Category {cat.Id}");
+        return false;
     }
 
     public async Task<List<UexItem>> GetCommodities(ItemCacheDb db, HttpClient client)
     {
         List<UexItem> commodityItems = [];
-        var responseTask = await client.GetAsync($"https://api.uexcorp.uk/2.0/commodities");
-        var response = responseTask;
+        var response = await client.GetAsync("https://api.uexcorp.uk/2.0/commodities");
         if (response.IsSuccessStatusCode)
         {
             var itemsResponse = await response.Content.ReadFromJsonAsync<UexCommodityResponse>();
-            if (itemsResponse != null)
+            if (itemsResponse?.Data != null)
             {
-                if (itemsResponse.Data == null) return [];
-
                 foreach (UexCommodity commodity in itemsResponse.Data)
                 {
                     var commodityItem = new UexItem
