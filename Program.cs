@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StarInventoryAPI.Db;
 using StarInventoryAPI.Endpoints;
+using StarInventoryAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,7 +61,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 var connectionString = builder.Configuration.GetConnectionString("MariaDbConnection");
 builder.Services.AddDbContext<ItemCacheDb>(
     opt => opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-    .LogTo(Console.WriteLine, LogLevel.Information)
+    .LogTo(Console.WriteLine, LogLevel.Warning)
     .EnableSensitiveDataLogging()
     .EnableDetailedErrors()
 );
@@ -74,6 +75,10 @@ builder.Services.AddHttpClient("UexApi", client =>
     client.BaseAddress = new Uri("https://api.uexcorp.uk/2.0/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
+
+// Cache sync queue and background worker
+builder.Services.AddSingleton<CacheSyncQueue>();
+builder.Services.AddHostedService<CacheSyncWorker>();
 
 
 
