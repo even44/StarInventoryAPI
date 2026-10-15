@@ -37,7 +37,39 @@ Below is a list of available API endpoints, grouped by their route and purpose. 
 *Require Authorization: `dev`*
 
 - **GET** `/dev/updateCache`  
-	Update the cache from UEX and compile a list of locations.
+	Synchronizes the cache from UEX API into the local database and compiles locations. Returns a Server-Sent Events (SSE) stream (`text/event-stream`).
+
+	**Query Parameters:**
+	| Parameter | Type | Default | Description |
+	|---|---|---|---|
+	| `updateItems` | `boolean` | `false` | If `true`, synchronizes UEX categories and items (~8,000 items). |
+	| `updateLocations` | `boolean` | `false` | If `true`, synchronizes POIs, space stations, cities, and compiles `StarLocations`. |
+
+	**Queue Architecture & Concurrency:**
+	- Cache sync jobs are queued via an in-process FIFO `CacheSyncQueue` and processed sequentially by a background worker (`CacheSyncWorker`).
+	- If multiple users or tabs trigger syncs simultaneously, subsequent requests wait in line rather than colliding in MariaDB.
+	- The database operations are fully decoupled from HTTP request lifetimes; if a client disconnects or times out, the background worker safely finishes updating the database.
+
+	**SSE Event Contract:**
+	Each event is emitted as a JSON object on the `data:` line:
+
+	| Status (`status`) | Accompanying Fields | Description |
+	|---|---|---|
+	| `queued` | `message: string` | Emitted when a job is waiting in line behind an active sync. |
+	| `started` | _(none)_ | Sync execution has begun. |
+	| `updating_categories` | _(none)_ | Fetching and updating UEX category definitions. |
+	| `updating_items` | `category: { id: number, name: string }`, `progress: { current: number, total: number }` | Emitted for each category during item sync. **Note for frontend:** use `progress.current` and `progress.total` to render granular progress (e.g. `(current / total) * 100%`). |
+	| `processing` | `category?: string`, `note?: string` | Periodic heartbeat emitted every 5s during processing to keep connections and proxies alive. |
+	| `items_updated` | _(none)_ | All categories and items have finished saving to the database. |
+	| `updating_pois` | _(none)_ | Updating points of interest from UEX. |
+	| `updating_space_stations` | _(none)_ | Updating space stations from UEX. |
+	| `updating_cities` | _(none)_ | Updating cities from UEX. |
+	| `compiling_locations` | _(none)_ | Merging POIs, stations, and cities into `StarLocations`. |
+	| `completed` | `response: { totalItems: number, totalPois: number, totalStations: number, totalCities: number, total: number }` | All requested sync steps finished successfully with final counts. |
+	| `error` | `step: string`, `message?: string` | Emitted if an error occurred in a specific step. |
+
+	**Reverse Proxy / Gateway Note:**
+	A full sync takes ~25 seconds. Ensure intermediate reverse proxies (e.g., Envoy Gateway, Nginx, Cloudflare) have their route timeouts configured to at least 300s for this endpoint to prevent premature termination.
 
 ---
 
