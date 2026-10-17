@@ -22,6 +22,8 @@ Below is a list of available API endpoints, grouped by their route and purpose. 
 
 - **GET** `/cache/locations`  
 	Get a list of all locations.
+
+	Location `id`s are stable: each location is tied to its UEX source (POI, space station or city id), so a cache sync never renumbers locations and `PersonalItems.locationId` keeps pointing at the same place. New UEX locations get a new `id`; locations removed from UEX are deleted only when no user item references them, otherwise they are kept.
 - **GET** `/cache/locations/{searchTerm}`  
 	Search locations by term.
 - **GET** `/cache/categories`  
@@ -59,7 +61,7 @@ Below is a list of available API endpoints, grouped by their route and purpose. 
 	| `started` | _(none)_ | Sync execution has begun. |
 	| `updating_categories` | _(none)_ | Fetching and updating UEX category definitions. |
 	| `updating_items` | `category: { id: number, name: string }`, `progress: { current: number, total: number }` | Emitted for each category during item sync. **Note for frontend:** use `progress.current` and `progress.total` to render granular progress (e.g. `(current / total) * 100%`). |
-	| `processing` | `category?: string`, `note?: string` | Periodic heartbeat emitted every 5s during processing to keep connections and proxies alive. |
+	| `processing` | `category?: string`, `note?: string` | Heartbeat emitted after 5s without progress once this job has started, to keep connections and proxies alive. While the job is still waiting in line the heartbeat is `queued` instead. |
 	| `items_updated` | _(none)_ | All categories and items have finished saving to the database. |
 	| `updating_pois` | _(none)_ | Updating points of interest from UEX. |
 	| `updating_space_stations` | _(none)_ | Updating space stations from UEX. |
@@ -67,6 +69,10 @@ Below is a list of available API endpoints, grouped by their route and purpose. 
 	| `compiling_locations` | _(none)_ | Merging POIs, stations, and cities into `StarLocations`. |
 	| `completed` | `response: { totalItems: number, totalPois: number, totalStations: number, totalCities: number, total: number }` | All requested sync steps finished successfully with final counts. |
 	| `error` | `step: string`, `message?: string` | Emitted if an error occurred in a specific step. |
+
+	**Item names and commodities:**
+	- Item and commodity names are HTML-decoded (`&amp;` → `&`, `&quot;` → `"`, `&#39;` → `'`, ...). Before, `&amp;` was stripped, so names that contained `&` change on the next items sync.
+	- Commodities are stored as items with `id = commodityId + 10000` in the UEX `Commodities` category (resolved by name from the synced categories). The offset is fixed because it is stored in users' `uexIdentifier`.
 
 	**Reverse Proxy / Gateway Note:**
 	A full sync takes ~25 seconds. Ensure intermediate reverse proxies (e.g., Envoy Gateway, Nginx, Cloudflare) have their route timeouts configured to at least 300s for this endpoint to prevent premature termination.

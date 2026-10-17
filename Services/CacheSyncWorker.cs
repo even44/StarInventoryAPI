@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using StarInventoryAPI.Db;
 
 namespace StarInventoryAPI.Services;
 
@@ -9,18 +8,15 @@ public class CacheSyncWorker : BackgroundService
 {
     private readonly CacheSyncQueue _queue;
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<CacheSyncWorker> _logger;
 
     public CacheSyncWorker(
         CacheSyncQueue queue,
         IServiceScopeFactory scopeFactory,
-        IHttpClientFactory httpClientFactory,
         ILogger<CacheSyncWorker> logger)
     {
         _queue = queue;
         _scopeFactory = scopeFactory;
-        _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
 
@@ -41,6 +37,7 @@ public class CacheSyncWorker : BackgroundService
             }
 
             _queue.SetCurrentJob(job);
+            job.MarkStarted();
             try
             {
                 await ProcessJobAsync(job, stoppingToken);
@@ -63,8 +60,7 @@ public class CacheSyncWorker : BackgroundService
     private async Task ProcessJobAsync(CacheSyncJob job, CancellationToken stoppingToken)
     {
         using var scope = _scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ItemCacheDb>();
-        var client = _httpClientFactory.CreateClient("UexApi");
+        var sync = scope.ServiceProvider.GetRequiredService<IUexSyncService>();
 
         _logger.LogInformation("Processing cache sync job {JobId} (UpdateItems: {UpdateItems}, UpdateLocations: {UpdateLocations})",
             job.Id, job.UpdateItems, job.UpdateLocations);
@@ -74,7 +70,7 @@ public class CacheSyncWorker : BackgroundService
         if (job.UpdateItems)
         {
             job.ReportProgress(new { status = "updating_categories" });
-            var catResult = await db.UpdateCategories(db, client);
+            var catResult = await sync.UpdateCategoriesAsync(stoppingToken);
             if (catResult.Count == 0)
             {
                 _logger.LogWarning("Job {JobId}: Failed to update categories.", job.Id);
@@ -94,7 +90,7 @@ public class CacheSyncWorker : BackgroundService
                     progress = new ProgressReport(i + 1, catResult.Count)
                 });
 
-                var updateSuccess = await db.UpdateItemsFromCategory(cat, db, client);
+                var updateSuccess = await sync.UpdateItemsFromCategoryAsync(cat, stoppingToken);
                 if (!updateSuccess)
                 {
                     _logger.LogWarning("Job {JobId}: Failed to update items for category {CatName} ({CatId})",
@@ -109,7 +105,7 @@ public class CacheSyncWorker : BackgroundService
 
         if (!job.UpdateLocations)
         {
-            var resp = await db.GetCacheUpdateResponse(db);
+            var resp = await sync.GetCacheUpdateResponseAsync(stoppingToken);
             job.ReportProgress(new { status = "completed", response = resp });
             return;
         }
@@ -117,7 +113,7 @@ public class CacheSyncWorker : BackgroundService
         if (stoppingToken.IsCancellationRequested) return;
 
         job.ReportProgress(new { status = "updating_pois" });
-        var poiResult = await db.UpdatePois(db, client);
+        var poiResult = await sync.UpdatePoisAsync(stoppingToken);
         if (!poiResult)
         {
             _logger.LogWarning("Job {JobId}: Failed to update POIs.", job.Id);
@@ -128,7 +124,7 @@ public class CacheSyncWorker : BackgroundService
         if (stoppingToken.IsCancellationRequested) return;
 
         job.ReportProgress(new { status = "updating_space_stations" });
-        var spaceStationResult = await db.UpdateSpaceStations(db, client);
+        var spaceStationResult = await sync.UpdateSpaceStationsAsync(stoppingToken);
         if (!spaceStationResult)
         {
             _logger.LogWarning("Job {JobId}: Failed to update space stations.", job.Id);
@@ -139,7 +135,7 @@ public class CacheSyncWorker : BackgroundService
         if (stoppingToken.IsCancellationRequested) return;
 
         job.ReportProgress(new { status = "updating_cities" });
-        var cityResult = await db.UpdateCities(db, client);
+        var cityResult = await sync.UpdateCitiesAsync(stoppingToken);
         if (!cityResult)
         {
             _logger.LogWarning("Job {JobId}: Failed to update cities.", job.Id);
@@ -150,7 +146,7 @@ public class CacheSyncWorker : BackgroundService
         if (stoppingToken.IsCancellationRequested) return;
 
         job.ReportProgress(new { status = "compiling_locations" });
-        var locationMergeResult = await db.CompileLocations(db);
+        var locationMergeResult = await sync.CompileLocationsAsync(stoppingToken);
         if (!locationMergeResult)
         {
             _logger.LogWarning("Job {JobId}: Failed to compile locations.", job.Id);
@@ -158,7 +154,7 @@ public class CacheSyncWorker : BackgroundService
             return;
         }
 
-        var final = await db.GetCacheUpdateResponse(db);
+        var final = await sync.GetCacheUpdateResponseAsync(stoppingToken);
         _logger.LogInformation("Job {JobId} completed successfully. Total cached: {Total}", job.Id, final.Total);
         job.ReportProgress(new { status = "completed", response = final });
     }

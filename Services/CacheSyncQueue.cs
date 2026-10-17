@@ -13,6 +13,9 @@ public class CacheSyncJob
     public TaskCompletionSource<bool> Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     public DateTime CreatedAt { get; } = DateTime.UtcNow;
 
+    private volatile bool _isStarted;
+    public bool IsStarted => _isStarted;
+
     public CacheSyncJob(bool updateItems, bool updateLocations)
     {
         UpdateItems = updateItems;
@@ -22,6 +25,11 @@ public class CacheSyncJob
             SingleWriter = true,
             SingleReader = false
         });
+    }
+
+    public void MarkStarted()
+    {
+        _isStarted = true;
     }
 
     public void ReportProgress(object data)
@@ -45,7 +53,7 @@ public class CacheSyncQueue
     });
 
     private int _queuedCount = 0;
-    private CacheSyncJob? _currentJob;
+    private volatile CacheSyncJob? _currentJob;
 
     public int QueuedCount => Volatile.Read(ref _queuedCount);
     public bool IsRunning => _currentJob != null;
