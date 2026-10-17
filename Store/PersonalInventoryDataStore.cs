@@ -56,7 +56,7 @@ public static class PersonalInventoryDataStore
         // Merge if location change
         if (existingItem.LocationId != item.LocationId)
         {
-            var existingItemAtNewLocation = await db.PersonalItems.Where(i => i.LocationId == item.LocationId && i.UexIdentifier == item.UexIdentifier).FirstOrDefaultAsync();
+            var existingItemAtNewLocation = await db.PersonalItems.Where(i => i.Username == username && i.LocationId == item.LocationId && i.UexIdentifier == item.UexIdentifier).FirstOrDefaultAsync();
             if (existingItemAtNewLocation == null)
             {
                 existingItem.LocationId = item.LocationId;
