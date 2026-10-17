@@ -1,3 +1,4 @@
+using StarInventoryAPI.Filters;
 using StarInventoryAPI.Handlers;
 
 namespace StarInventoryAPI.Endpoints
@@ -10,11 +11,13 @@ namespace StarInventoryAPI.Endpoints
 
             recipeApi.MapGet("/", RecipeHandlers.GetAllRecipesList);
 
-            recipeApi.MapPost("/", RecipeHandlers.AddRecipe).RequireAuthorization("organization");
+            recipeApi.MapGet("/{id:int}", RecipeHandlers.GetRecipe);
 
-            recipeApi.MapDelete("/{id}", RecipeHandlers.RemoveRecipe).RequireAuthorization("organization");
+            recipeApi.MapPost("/", RecipeHandlers.AddRecipe).WithValidation<Recipe>().RequireAuthorization("organization");
 
-            recipeApi.MapPut("/{id}", RecipeHandlers.EditRecipe).RequireAuthorization("organization");
+            recipeApi.MapDelete("/{id:int}", RecipeHandlers.RemoveRecipe).RequireAuthorization("organization");
+
+            recipeApi.MapPut("/{id:int}", RecipeHandlers.EditRecipe).WithValidation<Recipe>().RequireAuthorization("organization");
         }
 
     }

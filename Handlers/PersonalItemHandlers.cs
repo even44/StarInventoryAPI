@@ -1,27 +1,29 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using StarInventoryAPI.Db;
+using StarInventoryAPI.Extentions;
 using StarInventoryAPI.Store;
 
 namespace StarInventoryAPI.Handlers;
 
 internal static class PersonalItemHandlers
 {
-    public static async Task<Results<Ok<List<StarItem>>, UnauthorizedHttpResult>> GetAllPersonalItemsList(ItemCacheDb db, HttpContext httpContext)
+    public static async Task<Results<Ok<List<StarItem>>, UnauthorizedHttpResult>> GetAllPersonalItemsList(string? search, ItemCacheDb db, HttpContext httpContext)
     {
-        var username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+        var username = httpContext.User.GetUsername();
         if (username == null)
         {
             return TypedResults.Unauthorized();
         }
 
-        List<StarItem> items;
-        items = await PersonalInventoryDataStore.GetPersonalItems(db, username);
+        List<StarItem> items = string.IsNullOrWhiteSpace(search)
+            ? await PersonalInventoryDataStore.GetPersonalItems(db, username)
+            : await PersonalInventoryDataStore.SearchPersonalItems(db, username, search);
         return TypedResults.Ok(items);
     }
 
     public static async Task<Results<Ok<List<StarItem>>, UnauthorizedHttpResult>> GetAllPersonalItemsListSearch(string searchTerm, ItemCacheDb db, HttpContext httpContext)
     {
-        var username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+        var username = httpContext.User.GetUsername();
         if (username == null)
         {
             return TypedResults.Unauthorized();
@@ -31,9 +33,25 @@ internal static class PersonalItemHandlers
         return TypedResults.Ok(items);
     }
 
+    public static async Task<Results<Ok<StarItem>, NotFound, UnauthorizedHttpResult>> GetPersonalItem(int id, ItemCacheDb db, HttpContext httpContext)
+    {
+        var username = httpContext.User.GetUsername();
+        if (username == null)
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        var item = await PersonalInventoryDataStore.GetStarItem(db, id, username);
+        if (item == null)
+        {
+            return TypedResults.NotFound();
+        }
+        return TypedResults.Ok(item);
+    }
+
     public static async Task<Results<Created<StarItem>, UnauthorizedHttpResult, BadRequest<string>>> AddPersonalItemToInventory(StarItem item, ItemCacheDb db, HttpContext httpContext)
     {
-        var username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+        var username = httpContext.User.GetUsername();
         if (username == null)
         {
             return TypedResults.Unauthorized();
@@ -48,7 +66,7 @@ internal static class PersonalItemHandlers
 
     public static async Task<Results<Ok, NotFound<string>, UnauthorizedHttpResult>> RemovePersonalItemFromInventory(int id, ItemCacheDb db, HttpContext httpContext)
     {
-        var username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+        var username = httpContext.User.GetUsername();
         if (username == null)
         {
             return TypedResults.Unauthorized();
@@ -63,21 +81,22 @@ internal static class PersonalItemHandlers
         return TypedResults.Ok();
     }
 
-    public static async Task<Results<Ok<StarItem>, UnauthorizedHttpResult>> GetOnePersonalItemFromId(int id, StarItem item, ItemCacheDb db, HttpContext httpContext)
+    // KeyNotFoundException (404) and UnauthorizedAccessException (403) from the store are mapped to ProblemDetails by ApiExceptionHandler
+    public static async Task<Results<Ok<StarItem>, UnauthorizedHttpResult>> UpdatePersonalItem(int id, StarItem item, ItemCacheDb db, HttpContext httpContext)
     {
-        string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+        var username = httpContext.User.GetUsername();
         if (username == null)
         {
             return TypedResults.Unauthorized();
         }
-        StarItem reusltItem = await PersonalInventoryDataStore.UpdateStarItem(db, id, item, username);
+        StarItem resultItem = await PersonalInventoryDataStore.UpdateStarItem(db, id, item, username);
 
-        return TypedResults.Ok(reusltItem);
+        return TypedResults.Ok(resultItem);
     }
 
     public static async Task<Results<Ok, UnauthorizedHttpResult>> WipeAllPersonalItems(ItemCacheDb db, HttpContext httpContext)
     {
-        string? username = httpContext.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value;
+        var username = httpContext.User.GetUsername();
         if (username == null)
         {
             return TypedResults.Unauthorized();

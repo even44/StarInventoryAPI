@@ -1,3 +1,4 @@
+using StarInventoryAPI.Filters;
 using StarInventoryAPI.Handlers;
 
 namespace StarInventoryAPI.Endpoints
@@ -12,7 +13,7 @@ namespace StarInventoryAPI.Endpoints
 
             orgApi.MapGet("/inventory", OrgHandlers.GetAllSharedItemsFromOrgInventoryUsers);
 
-            orgApi.MapPost("/participatingusers", OrgHandlers.AddUserToOrgInventory).RequireAuthorization("organization");
+            orgApi.MapPost("/participatingusers", OrgHandlers.AddUserToOrgInventory).WithValidation<User>().RequireAuthorization("organization");
 
             orgApi.MapDelete("/participatingusers/{username}", OrgHandlers.RemoveUserFromOrgInventory).RequireAuthorization("organization");
 

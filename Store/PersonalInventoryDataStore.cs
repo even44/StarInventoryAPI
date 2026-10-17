@@ -111,6 +111,11 @@ public static class PersonalInventoryDataStore
         return false;
     }
 
+    public static async Task<StarItem?> GetStarItem(ItemCacheDb db, int id, string username)
+    {
+        return await db.PersonalItems.FirstOrDefaultAsync(item => item.Id == id && item.Username == username);
+    }
+
     public static async Task<List<StarItem>> GetPersonalItems(ItemCacheDb db, string username)
     {
         await UserDataStore.EnsureUserExists(db, username);

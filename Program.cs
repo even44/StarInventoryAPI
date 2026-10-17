@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StarInventoryAPI.Db;
 using StarInventoryAPI.Endpoints;
+using StarInventoryAPI.Extentions;
 using StarInventoryAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGenWithAuth();
 
 builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 
@@ -26,6 +28,7 @@ builder.Services.AddCors(options =>
             policy.WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
             policy.AllowAnyOrigin();
             policy.WithHeaders("Content-Type", "Authorization", "Accept");
+            policy.WithExposedHeaders(PaginationExtentions.TotalCountHeader, "Location");
         });
 });
 
@@ -94,6 +97,21 @@ app.Logger.LogInformation("Database connection verified");
 
 app.Logger.LogInformation("Enableing Middleware");
 
+// Turn unhandled exceptions (ApiExceptionHandler) and empty error responses into RFC 7807 ProblemDetails
+app.UseExceptionHandler();
+app.UseStatusCodePages(statusCodeHandlerApp =>
+{
+    statusCodeHandlerApp.Run(async httpContext =>
+    {
+        var pds = httpContext.RequestServices.GetService<IProblemDetailsService>();
+        if (pds == null
+            || !await pds.TryWriteAsync(new() { HttpContext = httpContext }))
+        {
+            await httpContext.Response.WriteAsync("Fallback: An error occurred.");
+        }
+    });
+});
+
 // Enable CORS Policies and Auth
 app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
@@ -111,19 +129,6 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = string.Empty;
     });
 
-    app.Logger.LogInformation("Enabeling Status Code Pages");
-    app.UseStatusCodePages(statusCodeHandlerApp =>
-    {
-        statusCodeHandlerApp.Run(async httpContext =>
-        {
-            var pds = httpContext.RequestServices.GetService<IProblemDetailsService>();
-            if (pds == null
-                || !await pds.TryWriteAsync(new() { HttpContext = httpContext }))
-            {
-                await httpContext.Response.WriteAsync("Fallback: An error occurred.");
-            }
-        });
-    });
 }
 
 app.Logger.LogInformation("Mapping Endpoints");

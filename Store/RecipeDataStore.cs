@@ -1,8 +1,16 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using StarInventoryAPI.Db;
 
 namespace StarInventoryAPI.Store;
+
+public enum RecipeWriteStatus
+{
+    Success,
+    NotFound,
+    NameConflict,
+}
+
+public record RecipeWriteResult(RecipeWriteStatus Status, Recipe? Recipe = null);
 
 public static class RecipeDataStore
 {
@@ -12,21 +20,22 @@ public static class RecipeDataStore
         return recipes;
     }
 
-    public static async Task<Results<Created, BadRequest, Conflict>> AddRecipe(ItemCacheDb db, Recipe recipe)
+    public static async Task<Recipe?> GetRecipe(ItemCacheDb db, int id)
     {
+        return await db.Recipes.FindAsync(id);
+    }
 
+    public static async Task<RecipeWriteResult> AddRecipe(ItemCacheDb db, Recipe recipe)
+    {
         recipe.Id = 0;
 
-        if (recipe.UexItemIds.Length == 0 || recipe.UexItemIds.Length != recipe.ItemAmounts.Length) return TypedResults.BadRequest();
+        var existingRecipe = await db.Recipes.FirstOrDefaultAsync(r => r.Name == recipe.Name);
+        if (existingRecipe != null) return new RecipeWriteResult(RecipeWriteStatus.NameConflict);
 
-        var existingRecipe = await db.Recipes.FirstOrDefaultAsync(r =>  r.Name == recipe.Name );
-        if (existingRecipe != null) return TypedResults.Conflict();
-        
-        
         db.Recipes.Add(recipe);
         await db.SaveChangesAsync();
 
-        return TypedResults.Created();
+        return new RecipeWriteResult(RecipeWriteStatus.Success, recipe);
     }
 
     public static async Task<bool> RemoveRecipe(ItemCacheDb db, int id)
@@ -42,20 +51,21 @@ public static class RecipeDataStore
         return true;
     }
 
-    public static async Task<bool> UpdateRecipe(ItemCacheDb db, Recipe recipe, int id)
+    public static async Task<RecipeWriteResult> UpdateRecipe(ItemCacheDb db, Recipe recipe, int id)
     {
         var existingRecipe = await db.Recipes.FindAsync(id);
 
-        if (existingRecipe == null) return false;
+        if (existingRecipe == null) return new RecipeWriteResult(RecipeWriteStatus.NotFound);
 
-        if (recipe.UexItemIds.Length != recipe.ItemAmounts.Length) return false;
+        var nameTaken = await db.Recipes.AnyAsync(r => r.Id != id && r.Name == recipe.Name);
+        if (nameTaken) return new RecipeWriteResult(RecipeWriteStatus.NameConflict);
 
         existingRecipe.UexItemIds = recipe.UexItemIds;
         existingRecipe.ItemAmounts = recipe.ItemAmounts;
         existingRecipe.Name = recipe.Name;
 
         await db.SaveChangesAsync();
-        
-        return true;
+
+        return new RecipeWriteResult(RecipeWriteStatus.Success, existingRecipe);
     }
 }

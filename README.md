@@ -20,14 +20,14 @@ Below is a list of available API endpoints, grouped by their route and purpose. 
 ### **Cache Endpoints** (`/cache`)
 *Require Authorization: `user`*
 
-- **GET** `/cache/locations`  
-	Get a list of all locations.
+- **GET** `/cache/locations?page={n}&pageSize={n}`  
+	Get a list of all locations. `page`/`pageSize` are optional (pageSize 1–500, default 50 when only `page` is set); the unpaged total is returned in the `X-Total-Count` header.
 - **GET** `/cache/locations/{searchTerm}`  
 	Search locations by term.
 - **GET** `/cache/categories`  
 	Get a list of all categories.
-- **GET** `/cache/items`  
-	Get a list of all items.
+- **GET** `/cache/items?page={n}&pageSize={n}`  
+	Get a list of all items. Same optional pagination and `X-Total-Count` header as `/cache/locations`.
 - **GET** `/cache/items/{searchTerm}`  
 	Search items by term.
 
@@ -92,16 +92,18 @@ Below is a list of available API endpoints, grouped by their route and purpose. 
 ### **Personal Endpoints** (`/personal`)
 *Require Authorization: `user`*
 
-- **GET** `/personal/items`  
-	Get a list of all personal items.
+- **GET** `/personal/items?search={term}`  
+	Get a list of all personal items, or search them when `search` is given.
+- **GET** `/personal/items/{id}`  
+	Get one personal item by numeric ID (404 if it does not exist or is not yours).
 - **GET** `/personal/items/{searchTerm}`  
-	Search personal items by term.
+	Search personal items by a non-numeric term (prefer `?search=`; numeric terms resolve to the item-by-ID route).
 - **POST** `/personal/items`  
 	Add a personal item to inventory.
 - **DELETE** `/personal/items/{id}`  
 	Remove a personal item from inventory by ID.
 - **PUT** `/personal/items/{id}`  
-	Get one personal item by ID.
+	Update one personal item by ID (quantity, location, organization sharing).
 - **DELETE** `/personal/wipePersonalItems`  
 	Wipe all personal items for the current user.
 
@@ -112,6 +114,8 @@ Below is a list of available API endpoints, grouped by their route and purpose. 
 
 - **GET** `/recipe/`  
 	Get a list of all recipes.
+- **GET** `/recipe/{id}`  
+	Get one recipe by ID.
 - **POST** `/recipe/`  
 	Add a new recipe. (*Requires `organization` authorization*)
 - **DELETE** `/recipe/{id}`  
@@ -124,5 +128,8 @@ Below is a list of available API endpoints, grouped by their route and purpose. 
 ## Notes
 - All endpoints require authentication and may require specific roles as indicated.
 - Replace `{id}` or `{searchTerm}` or `{username}` with the appropriate value.
+- Error responses use RFC 7807 ProblemDetails (`application/problem+json`); validation failures return 400 with an `errors` map per field.
+- The caller's username is read from the JWT `nickname` claim, falling back to `preferred_username`, then `sub`.
+- See [docs/FRONTEND_INTEGRATION_WS4.md](docs/FRONTEND_INTEGRATION_WS4.md) for the full list of front-end-facing changes.
 
 ---
