@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using StarInventoryAPI.Db;
 
+namespace StarInventoryAPI.Extensions;
+
 public static class HostExtensions
 {
     public static IHost CheckDatabaseConnection(this IHost host)

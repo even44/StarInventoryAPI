@@ -10,7 +10,23 @@ on:
   workflow_dispatch: # This allows manual triggering of the workflow
 
 jobs:
+  # Integration tests (tests/StarInventoryAPI.Tests); the image is only built when they pass
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Run tests
+        run: dotnet test StarInventoryAPI.sln --configuration Release --logger "console;verbosity=normal"
+
   build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       # Checkout the repository code

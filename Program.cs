@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StarInventoryAPI.Db;
 using StarInventoryAPI.Endpoints;
+using StarInventoryAPI.Extensions;
 using StarInventoryAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,7 +30,7 @@ builder.Services.AddCors(options =>
         });
 });
 
-// Build the different policies and defining requred claims for authorization
+// Build the different policies and defining required claims for authorization
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("dev", policy => policy.RequireRole(["Dev"]))
     .AddPolicy("admin", policy => policy.RequireRole(["Admin"]))
@@ -38,10 +39,15 @@ builder.Services.AddAuthorizationBuilder()
 
 
 // Define the JWT Authentication Scheme
-var tempHttp = new HttpClient();
-var jwksJson = await tempHttp.GetAsync(builder.Configuration["Jwt:Issuer"] + "jwks/");
-jwksJson.EnsureSuccessStatusCode();
-var signingKey = JsonWebKeySet.Create(await jwksJson.Content.ReadAsStringAsync()).Keys.First();
+// The "Testing" environment (integration tests) supplies its own signing key, so skip the JWKS download
+SecurityKey? signingKey = null;
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    var tempHttp = new HttpClient();
+    var jwksJson = await tempHttp.GetAsync(builder.Configuration["Jwt:Issuer"] + "jwks/");
+    jwksJson.EnsureSuccessStatusCode();
+    signingKey = JsonWebKeySet.Create(await jwksJson.Content.ReadAsStringAsync()).Keys.First();
+}
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
     {
@@ -85,14 +91,18 @@ builder.Services.AddHostedService<CacheSyncWorker>();
 // Adding custom services for dependency injection
 var app = builder.Build();
 
-app.CheckDatabaseConnection();
-app.MigrateDatabase();
+// The "Testing" environment (integration tests) swaps in its own database and creates the schema itself
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    app.CheckDatabaseConnection();
+    app.MigrateDatabase();
+}
 
 
 
 app.Logger.LogInformation("Database connection verified");
 
-app.Logger.LogInformation("Enableing Middleware");
+app.Logger.LogInformation("Enabling Middleware");
 
 // Enable CORS Policies and Auth
 app.UseCors(MyAllowSpecificOrigins);
@@ -103,7 +113,7 @@ app.UseAuthorization();
 // Enable swagger if in dev mode
 if (app.Environment.IsDevelopment())
 {
-    app.Logger.LogInformation("Enabeling Swagger");
+    app.Logger.LogInformation("Enabling Swagger");
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
@@ -111,7 +121,7 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = string.Empty;
     });
 
-    app.Logger.LogInformation("Enabeling Status Code Pages");
+    app.Logger.LogInformation("Enabling Status Code Pages");
     app.UseStatusCodePages(statusCodeHandlerApp =>
     {
         statusCodeHandlerApp.Run(async httpContext =>
@@ -140,4 +150,6 @@ app.MapRecipeEndpoints();
 
 app.Logger.LogInformation("Starting App");
 app.Run();
-// This is a comment
+
+// Exposes the implicit Program class to the integration tests (WebApplicationFactory<Program>)
+public partial class Program { }

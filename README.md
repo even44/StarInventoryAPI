@@ -1,6 +1,30 @@
 
 # StarInventoryAPI
 
+## Local Development
+
+`docker-compose/docker-compose.yml` runs the API together with a MariaDB container:
+
+```bash
+cp docker-compose/.env.example docker-compose/.env   # fill in the database passwords and Jwt values
+docker compose -f docker-compose/docker-compose.yml up --build
+```
+
+- The API listens on http://localhost:8080 (Swagger UI at `/` when `ASPNETCORE_ENVIRONMENT=Development`, health at `/health`).
+- MariaDB is reachable from the host on `127.0.0.1:3306`; data persists in the `mariadb-data` volume.
+- The API applies EF Core migrations on startup, and only starts once MariaDB reports healthy.
+- `JWT_ISSUER` must be reachable: the API downloads the signing key from `${JWT_ISSUER}jwks/` on startup.
+
+## Running Tests
+
+```bash
+dotnet test StarInventoryAPI.sln
+```
+
+`tests/StarInventoryAPI.Tests` holds xUnit integration tests. They host the API in memory through `WebApplicationFactory`, with an in-memory SQLite database and JWTs signed by a test key, so they don't need MariaDB or the identity provider. They cover the authorization policies and the personal inventory, organization inventory and recipe endpoints. CI runs them on every push and pull request, and the Docker image is built only when they pass.
+
+The API skips the JWKS download and the database connect/migrate on startup when `ASPNETCORE_ENVIRONMENT=Testing`. Use that environment for tests only.
+
 ## API Endpoints Documentation
 
 Below is a list of available API endpoints, grouped by their route and purpose. All endpoints require appropriate authorization as noted.
