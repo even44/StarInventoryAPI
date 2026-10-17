@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 
-internal static class ServiceCollectionExtentions
+namespace StarInventoryAPI.Extensions;
+
+internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddSwaggerGenWithAuth(this IServiceCollection services)
     {

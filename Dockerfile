@@ -3,10 +3,10 @@ WORKDIR /App
 
 # Copy everything
 COPY . ./
-# Restore as distinct layers
-RUN dotnet restore
+# Restore as distinct layers (the API project only; the solution also contains the test project)
+RUN dotnet restore StarInventoryAPI.csproj
 # Build and publish a release
-RUN dotnet publish -o out
+RUN dotnet publish StarInventoryAPI.csproj -o out
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0

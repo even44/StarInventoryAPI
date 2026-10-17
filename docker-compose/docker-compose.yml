@@ -1,7 +1,51 @@
+# Local development stack: MariaDB + the API built from this repository.
+#   cp docker-compose/.env.example docker-compose/.env   # then fill in the Jwt values
+#   docker compose -f docker-compose/docker-compose.yml up --build
+# Swagger UI: http://localhost:8080/  Health: http://localhost:8080/health
+
 services:
-  StarInventoryAPI:
-    image: ghcr.io/even44/starinventoryapi:master
+  mariadb:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?set MARIADB_ROOT_PASSWORD in docker-compose/.env}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-StarInventory}
+      MARIADB_USER: ${MARIADB_USER:-starinventory}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?set MARIADB_PASSWORD in docker-compose/.env}
     ports:
-      - 8080
+      # Bound to localhost only, for database tools on the host
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
+  starinventoryapi:
+    build:
+      context: ..
+    image: starinventoryapi:local
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ConnectionStrings__MariaDbConnection: "Server=mariadb;Port=3306;Database=${MARIADB_DATABASE:-StarInventory};Uid=${MARIADB_USER:-starinventory};Pwd=${MARIADB_PASSWORD};"
+      # The API downloads the signing keys from ${Jwt__Issuer}jwks/ on startup, so the issuer must be reachable
+      Jwt__Issuer: ${JWT_ISSUER:?set JWT_ISSUER in docker-compose/.env}
+      Jwt__ClientId: ${JWT_CLIENT_ID:?set JWT_CLIENT_ID in docker-compose/.env}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
+volumes:
+  mariadb-data:
