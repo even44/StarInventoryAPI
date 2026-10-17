@@ -77,6 +77,7 @@ builder.Services.AddHttpClient("UexApi", client =>
 });
 
 // Cache sync queue and background worker
+builder.Services.AddScoped<IUexSyncService, UexSyncService>();
 builder.Services.AddSingleton<CacheSyncQueue>();
 builder.Services.AddHostedService<CacheSyncWorker>();
 
