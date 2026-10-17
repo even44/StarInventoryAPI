@@ -17,8 +17,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Verify the project compiles before building the image
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore StarInventoryAPI.csproj
+
+      - name: Build
+        run: dotnet build StarInventoryAPI.csproj --no-restore --configuration Release
+
       # Log in to GitHub's Container Registry using the GITHUB_TOKEN
+      # Only on master (push or manual dispatch); pull requests never publish images
       - name: Log in to GitHub Container Registry
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: set lower case owner name
@@ -31,13 +45,13 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          push: true
+          push: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
           tags: |
             ghcr.io/${{ env.REPO_LC }}:latest
             ghcr.io/${{ env.REPO_LC }}:${{ github.sha }}
 
       - name: UpdateGitOps repository
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         shell: bash
         env:
           GIT_TOKEN: ${{secrets.GITOPS_PAT }}
@@ -58,6 +72,19 @@ jobs:
           git config --global user.name "Github Actions - Star Inventory"
           git config --global user.email "actions@github.com"
           git add api-deployment.yaml
+          if git diff --cached --quiet; then
+            echo "Image already set to ${{github.sha}}, nothing to commit"
+            exit 0
+          fi
           git commit -m "Update image to ${{github.sha}}"
 
-          git push -f https://${GIT_TOKEN}@github.com/even44/kubuxter.git main
+          # Never force-push the GitOps repo; rebase onto any concurrent commits and retry instead
+          for attempt in 1 2 3; do
+            if git push https://${GIT_TOKEN}@github.com/even44/kubuxter.git HEAD:main; then
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt), rebasing onto origin/main"
+            git pull --rebase origin main
+          done
+          echo "Failed to push GitOps update after 3 attempts" >&2
+          exit 1

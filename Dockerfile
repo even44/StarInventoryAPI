@@ -11,11 +11,14 @@ RUN dotnet publish -o out
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /App
-RUN apt-get update 
-RUN apt-get install -y curl
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=build /App/out .
 ENV ConnectionStrings__MariaDbConnection="databaseconnectionstring"
 ENV Jwt__Issuer="urltoissuer"
 ENV Jwt__ClientId="clientid"
+# Run as the built-in non-root user from the aspnet base image (listens on 8080 by default)
+USER app
 ENTRYPOINT ["dotnet", "StarInventoryAPI.dll"]
 

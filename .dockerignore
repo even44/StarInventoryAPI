@@ -1,0 +1,29 @@
+# Build output
+**/bin/
+**/obj/
+out/
+
+# VCS and editor/CI metadata
+.git/
+.gitignore
+.github/
+.idea/
+.vs/
+.vscode/
+*.user
+
+# Secrets and local configuration
+**/.env
+**/*.env
+appsettings.Development.json
+appsettings.*.local.json
+**/secrets.json
+*.pfx
+*.pem
+*.key
+
+# Not needed in the image
+docker-compose/
+Dockerfile
+.dockerignore
+README.md

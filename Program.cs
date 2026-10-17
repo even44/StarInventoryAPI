@@ -59,12 +59,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Define the database context for the app
 var connectionString = builder.Configuration.GetConnectionString("MariaDbConnection");
-builder.Services.AddDbContext<ItemCacheDb>(
-    opt => opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-    .LogTo(Console.WriteLine, LogLevel.Warning)
-    .EnableSensitiveDataLogging()
-    .EnableDetailedErrors()
-);
+builder.Services.AddDbContext<ItemCacheDb>(opt =>
+{
+    opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+        .LogTo(Console.WriteLine, LogLevel.Warning);
+    // Only log parameter values and detailed errors in development; they can leak user data in production logs
+    if (builder.Environment.IsDevelopment())
+    {
+        opt.EnableSensitiveDataLogging()
+            .EnableDetailedErrors();
+    }
+});
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ItemCacheDb>();
 
