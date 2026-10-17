@@ -9,11 +9,7 @@ internal static class AdminHandlers
 {
     public static async Task<Ok<string>> WipeAllUsersPersonalItems(ItemCacheDb db)
     {
-        var itemList = await db.PersonalItems.ToListAsync();
-
-        db.PersonalItems.RemoveRange(itemList);
-
-        await db.SaveChangesAsync();
+        await db.PersonalItems.ExecuteDeleteAsync();
 
         return TypedResults.Ok("Database Cleared");
     }

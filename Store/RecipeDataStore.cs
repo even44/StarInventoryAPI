@@ -8,7 +8,7 @@ public static class RecipeDataStore
 {
     public static async Task<List<Recipe>> ListRecipes(ItemCacheDb db)
     {
-        var recipes = await db.Recipes.ToListAsync();
+        var recipes = await db.Recipes.AsNoTracking().ToListAsync();
         return recipes;
     }
 
@@ -19,8 +19,8 @@ public static class RecipeDataStore
 
         if (recipe.UexItemIds.Length == 0 || recipe.UexItemIds.Length != recipe.ItemAmounts.Length) return TypedResults.BadRequest();
 
-        var existingRecipe = await db.Recipes.FirstOrDefaultAsync(r =>  r.Name == recipe.Name );
-        if (existingRecipe != null) return TypedResults.Conflict();
+        var recipeExists = await db.Recipes.AnyAsync(r => r.Name == recipe.Name);
+        if (recipeExists) return TypedResults.Conflict();
         
         
         db.Recipes.Add(recipe);

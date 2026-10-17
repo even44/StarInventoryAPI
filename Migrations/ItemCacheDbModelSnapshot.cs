@@ -82,9 +82,14 @@ namespace StarInventoryAPI.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Username", "LocationId");
+
+                    b.HasIndex("Username", "LocationId", "UexIdentifier");
 
                     b.ToTable("PersonalItems");
                 });
@@ -409,6 +414,8 @@ namespace StarInventoryAPI.Migrations
                         .HasAnnotation("Relational:JsonPropertyName", "id_vehicle");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("categoryId");
 
                     b.ToTable("UexItem");
                 });

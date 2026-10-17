@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 using StarInventoryAPI.Db;
 using StarInventoryAPI.Store;
 
@@ -82,9 +83,9 @@ internal static class PersonalItemHandlers
         {
             return TypedResults.Unauthorized();
         }
-        List<StarItem> items = await PersonalInventoryDataStore.GetPersonalItems(db, username);
-        db.PersonalItems.RemoveRange(items);
-        await db.SaveChangesAsync();
+        await db.PersonalItems
+            .Where(item => item.Username == username)
+            .ExecuteDeleteAsync();
 
         return TypedResults.Ok();
     }

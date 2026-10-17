@@ -7,26 +7,24 @@ public static class OrgDataStore
 {
     public static async Task<List<StarItem>> GetOrgInventory(ItemCacheDb db)
     {
-        var users = await db.OrgInventoryUsers.ToListAsync();
-        List<StarItem> items = new List<StarItem>();
-        foreach (var user in users)
-        {
-            var userItems = await db.PersonalItems
-                .Where(item => item.Username.ToLower() == user.Username.ToLower() && item.IsSharedWithOrganization)
-                .ToListAsync();
-            items.AddRange(userItems);
-        }
-
-        return items;
+        // Single JOIN instead of one query per org user. Relies on the case-insensitive
+        // default collation of the Username columns (same semantics as the old ToLower() compare).
+        return await db.PersonalItems
+            .AsNoTracking()
+            .Where(item => item.IsSharedWithOrganization)
+            .Join(db.OrgInventoryUsers,
+                item => item.Username,
+                user => user.Username,
+                (item, user) => item)
+            .ToListAsync();
     }
 
     public static async Task<bool> AddOrgInventoryUser(string username, ItemCacheDb db)
     {
-        var existingUser = await db.OrgInventoryUsers
-            .Where(u => u.Username.ToLower() == username.ToLower())
-            .FirstOrDefaultAsync();
+        var userExists = await db.OrgInventoryUsers
+            .AnyAsync(u => u.Username.ToLower() == username.ToLower());
 
-        if (existingUser != null)
+        if (userExists)
         {
             return false;
         }
@@ -57,6 +55,6 @@ public static class OrgDataStore
 
     public static async Task<List<OrgInventoryUser>> GetOrgInventoryUsers(ItemCacheDb db)
     {
-        return await db.OrgInventoryUsers.ToListAsync();
+        return await db.OrgInventoryUsers.AsNoTracking().ToListAsync();
     }
 }
