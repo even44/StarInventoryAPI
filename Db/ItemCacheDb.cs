@@ -22,6 +22,21 @@ public class ItemCacheDb : DbContext
     public DbSet<OrgInventoryUser> OrgInventoryUsers => Set<OrgInventoryUser>();
     public DbSet<Recipe> Recipes => Set<Recipe>();
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<StarItem>(b =>
+        {
+            // varchar(255) instead of longtext so Username can be indexed
+            b.Property(i => i.Username).HasMaxLength(255);
+            b.HasIndex(i => new { i.Username, i.LocationId });
+            b.HasIndex(i => new { i.Username, i.LocationId, i.UexIdentifier });
+        });
+
+        modelBuilder.Entity<UexItem>()
+            .HasIndex(i => i.categoryId);
+    }
 
     public async Task<List<UexCategory>> UpdateCategories(ItemCacheDb db, HttpClient client)
     {

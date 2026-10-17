@@ -9,7 +9,7 @@ public static class UserDataStore
 
     public static async Task<List<User>> GetUsers(ItemCacheDb db)
     {
-        return await db.Users.ToListAsync();
+        return await db.Users.AsNoTracking().ToListAsync();
     }
 
     public static async Task<User?> GetUser(string username, ItemCacheDb db)
@@ -38,9 +38,21 @@ public static class UserDataStore
 
     public static async Task<bool> EnsureUserExists(ItemCacheDb db, string username)
     {
-        if (null == await UserDataStore.GetUser(username, db))
+        // One existence check instead of GetUser + CreateUser's second FindAsync
+        if (await db.Users.AnyAsync(u => u.Username == username))
         {
-            await UserDataStore.CreateUser(username, db);
+            return true;
+        }
+
+        var entry = db.Users.Add(new User { Username = username });
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // A concurrent request created the user first; stop tracking our duplicate
+            entry.State = EntityState.Detached;
         }
         return true;
     }
